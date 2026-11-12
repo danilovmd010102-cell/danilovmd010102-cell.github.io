@@ -1,0 +1,2872 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef1ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1320" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Гамбит — тренер дебютов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #eef1ee;
+  --surface: #ffffff;
+  --surface-2: #e3e8e4;
+  --ink: #16203a;
+  --muted: #576178;
+  --line: #d3d9df;
+  --accent: #9a6a12;
+  --accent-soft: rgba(154, 106, 18, .14);
+  --btn: #16203a;
+  --btn-ink: #ffffff;
+  --good: #2c7a4b;
+  --good-soft: rgba(44, 122, 75, .13);
+  --bad: #b93a26;
+  --bad-soft: rgba(185, 58, 38, .12);
+  --shadow: 0 1px 2px rgba(22, 32, 58, .08), 0 6px 18px rgba(22, 32, 58, .06);
+  --serif: 'PT Serif', Georgia, 'Times New Roman', serif;
+  --sans: 'Golos Text', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1320;
+    --surface: #161d2c;
+    --surface-2: #1e2738;
+    --ink: #e6e9ef;
+    --muted: #9aa3b5;
+    --line: #2a3446;
+    --accent: #d8a547;
+    --accent-soft: rgba(216, 165, 71, .16);
+    --btn: #d8a547;
+    --btn-ink: #161208;
+    --good: #5cb883;
+    --good-soft: rgba(92, 184, 131, .15);
+    --bad: #e46e58;
+    --bad-soft: rgba(228, 110, 88, .15);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1320;
+  --surface: #161d2c;
+  --surface-2: #1e2738;
+  --ink: #e6e9ef;
+  --muted: #9aa3b5;
+  --line: #2a3446;
+  --accent: #d8a547;
+  --accent-soft: rgba(216, 165, 71, .16);
+  --btn: #d8a547;
+  --btn-ink: #161208;
+  --good: #5cb883;
+  --good-soft: rgba(92, 184, 131, .15);
+  --bad: #e46e58;
+  --bad-soft: rgba(228, 110, 88, .15);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+:root, :root[data-board="wood"] { --sq-l: #ecd6b0; --sq-d: #b3855a; --board-edge: #7d5a3a; }
+:root[data-board="slate"] { --sq-l: #dfe5ea; --sq-d: #7f97ae; --board-edge: #4f6377; }
+:root[data-board="moss"] { --sq-l: #e6ebd9; --sq-d: #79986d; --board-edge: #4c6444; }
+:root { --hl-last: rgba(236, 196, 64, .42); --hl-sel: rgba(80, 140, 230, .45); --hl-dot: rgba(20, 30, 50, .28); }
+
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; height: 100%; }
+body {
+  margin: 0; min-height: 100%;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: 16px; line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 30; background: var(--paper);
+}
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+[hidden] { display: none !important; }
+
+/* ---------- top-level layout ---------- */
+#view { max-width: 1120px; margin: 0 auto; padding: 0 16px 28px; }
+body.with-tabs #view { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+
+.apphead {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 -16px; padding: 10px 16px; min-height: 56px;
+  background: var(--paper);
+  border-bottom: 1px solid transparent;
+}
+.apphead.scrolled { border-bottom-color: var(--line); }
+.brand { display: flex; align-items: center; gap: 8px; margin-right: auto; text-decoration: none; }
+.brand svg { width: 30px; height: 30px; }
+.brand-name { font-family: var(--serif); font-weight: 700; font-size: 21px; letter-spacing: .01em; }
+.icon-btn {
+  display: inline-grid; place-items: center; width: 42px; height: 42px; flex: none;
+  border: 0; border-radius: 12px; background: transparent; color: var(--ink);
+}
+.icon-btn:active { background: var(--surface-2); }
+
+.page-title { font-family: var(--serif); font-size: 30px; line-height: 1.15; margin: 14px 0 6px; font-weight: 700; }
+.lead { color: var(--muted); margin: 0 0 18px; max-width: 60ch; }
+h2.sec { font-family: var(--serif); font-size: 20px; margin: 26px 0 10px; font-weight: 700; }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border-top: 1px solid var(--line);
+}
+.tabbar a {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 4px; border-radius: 12px; text-decoration: none;
+  color: var(--muted); font-size: 12.5px; font-weight: 500;
+}
+.tabbar a.on { color: var(--ink); }
+.tabbar a.on svg { stroke: var(--accent); }
+.tabbar a .pill { display: grid; place-items: center; width: 56px; height: 30px; border-radius: 15px; }
+.tabbar a.on .pill { background: var(--accent-soft); }
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 16px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font-weight: 600; font-size: 15px; text-decoration: none; text-align: center;
+}
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: transparent; }
+.btn.quiet { background: var(--surface-2); border-color: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.big { min-height: 52px; font-size: 16px; padding: 12px 20px; }
+.btn.full { width: 100%; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+/* ---------- library ---------- */
+.search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 0 12px; margin-bottom: 12px;
+}
+.search svg { color: var(--muted); }
+.search input { flex: 1; border: 0; background: transparent; padding: 12px 0; outline: none; min-width: 0; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); font-size: 14px; font-weight: 500; color: var(--ink);
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.group-title { display: flex; align-items: baseline; gap: 10px; margin: 24px 0 8px; }
+.group-title h2 { font-family: var(--serif); font-size: 19px; margin: 0; }
+.group-title span { color: var(--muted); font-size: 14px; }
+.op-list { display: grid; gap: 0; background: var(--surface); border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
+.op-row {
+  display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center;
+  padding: 12px 14px; text-decoration: none; border-top: 1px solid var(--line);
+}
+.op-row:first-child { border-top: 0; }
+.op-row:active { background: var(--surface-2); }
+.mini { display: block; width: 64px; height: 64px; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px var(--board-edge); }
+.mini svg { display: block; width: 100%; height: 100%; }
+.ml { fill: var(--sq-l); } .md { fill: var(--sq-d); }
+.op-name { display: block; font-family: var(--serif); font-weight: 700; font-size: 17px; line-height: 1.25; }
+.op-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 3px; font-size: 13.5px; color: var(--muted); }
+.side { display: inline-flex; align-items: center; gap: 5px; }
+.side::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #7b8190; }
+.side.w::before { background: #f7f5ef; }
+.side.b::before { background: #1c1f26; }
+.dots { display: flex; gap: 4px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.dots i.half { background: linear-gradient(90deg, var(--accent) 50%, transparent 50%); border-color: var(--accent); }
+.dots i.full { background: var(--accent); border-color: var(--accent); }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+/* ---------- opening page ---------- */
+.subhead { display: flex; align-items: center; gap: 6px; margin: 0 -16px; padding: 8px 10px; min-height: 56px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--paper); }
+.subhead .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.op-hero { display: grid; gap: 16px; margin-top: 4px; }
+.op-hero .mini { width: 100%; max-width: 230px; height: auto; aspect-ratio: 1; border-radius: 10px; margin: 0 auto; }
+.op-kind { color: var(--muted); font-size: 14px; margin: 0 0 4px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.op-title { font-family: var(--serif); font-size: 30px; line-height: 1.12; margin: 0 0 10px; }
+.op-desc { margin: 0; max-width: 62ch; }
+.ideas { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ideas li { position: relative; padding-left: 22px; max-width: 64ch; }
+.ideas li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 7px; height: 7px; transform: rotate(45deg); background: var(--accent); }
+.lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.line-item { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 12px; }
+.li-name { font-weight: 600; font-size: 16.5px; }
+.li-moves { font-size: 13.5px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.li-meta { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 13.5px; color: var(--muted); }
+.stars { color: var(--accent); letter-spacing: 2px; font-size: 15px; }
+.stars .off { color: var(--line); }
+.li-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cta-col { display: grid; gap: 10px; margin-top: 22px; }
+
+/* ---------- train page ---------- */
+.prog-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.prog-num { font-family: var(--serif); font-size: 34px; font-weight: 700; line-height: 1; }
+.prog-num small { font-family: var(--sans); font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 6px; }
+.bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin: 12px 0 10px; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.prog-note { margin: 0; color: var(--muted); font-size: 14px; }
+.quick { display: grid; gap: 10px; margin-top: 14px; }
+.q-item {
+  display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px;
+  text-decoration: none;
+}
+.q-item[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.q-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); }
+.q-ico svg { width: 30px; height: 30px; }
+.q-title { font-weight: 600; display: block; }
+.q-sub { font-size: 13.5px; color: var(--muted); display: block; margin-top: 2px; }
+.recent { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.recent li + li { border-top: 1px solid var(--line); }
+.recent a { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 14px; text-decoration: none; }
+.recent .r1 { font-weight: 600; }
+.recent .r2 { font-size: 13.5px; color: var(--muted); grid-column: 1; }
+.recent .stars { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+
+/* ---------- play setup ---------- */
+.resume { display: grid; gap: 12px; background: var(--accent-soft); border-radius: 16px; padding: 14px 16px; margin-bottom: 8px; }
+.resume p { margin: 0; }
+.field { margin-top: 20px; }
+.flabel { display: block; font-weight: 600; margin-bottom: 8px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); padding: 4px; border-radius: 14px; gap: 4px; }
+.seg button { border: 0; background: transparent; padding: 10px 6px; border-radius: 10px; font-weight: 500; font-size: 15px; min-height: 42px; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); font-weight: 600; }
+.levels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lvl { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px; display: grid; gap: 4px; }
+.lvl[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.lvl-name { font-weight: 600; }
+.lvl-desc { font-size: 13px; color: var(--muted); line-height: 1.35; }
+.meter { display: flex; gap: 3px; margin-top: 4px; }
+.meter i { width: 14px; height: 4px; border-radius: 2px; background: var(--surface-2); }
+.meter i.on { background: var(--accent); }
+select.sel { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); min-height: 48px; }
+.hint { color: var(--muted); font-size: 13.5px; margin: 6px 0 0; }
+.stats-line { display: flex; gap: 18px; flex-wrap: wrap; color: var(--muted); font-size: 14.5px; }
+.stats-line b { color: var(--ink); font-family: var(--serif); font-size: 20px; margin-right: 4px; }
+
+/* ---------- board screen ---------- */
+.bscreen { margin: 0 -16px; }
+.bhead {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 4px; padding: 6px 6px; min-height: 54px; background: var(--paper);
+}
+.btitle { flex: 1; min-width: 0; text-align: center; }
+.btitle h1 { margin: 0; font-family: var(--serif); font-size: 17.5px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btitle p { margin: 1px 0 0; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.blayout { display: grid; gap: 10px; padding: 0 8px; }
+.bcol { --bsize: max(240px, min(calc(100vw - 16px), 560px, calc(100vh - 290px))); }
+@supports (height: 100dvh) { .bcol { --bsize: max(240px, min(calc(100vw - 16px), 560px, calc(100dvh - 290px))); } }
+.bcol { width: var(--bsize); margin: 0 auto; }
+.pbar { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 2px 2px; font-size: 14px; }
+.pname { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.pname::before { content: ""; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid #7b8190; }
+.pname.w::before { background: #f7f5ef; } .pname.b::before { background: #1c1f26; }
+.pname.turn::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+.pcap { margin-left: auto; display: flex; align-items: center; gap: 0; color: var(--muted); font-size: 13px; }
+.pcap svg { width: 18px; height: 18px; margin-left: -4px; }
+.pcap b { margin-left: 4px; font-weight: 600; }
+
+.scol { display: grid; gap: 10px; align-content: start; width: 100%; max-width: 560px; margin: 0 auto; }
+.note { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; min-height: 84px; }
+.note p { margin: 0; }
+.note .n-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.note .n-head .bar { flex: 1; margin: 0; height: 5px; }
+.n-entry + .n-entry { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.n-move { font-family: var(--serif); font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.n-text { margin-top: 3px; max-width: 62ch; }
+.n-prompt { margin-top: 10px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.n-prompt.you::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.tag { font-family: var(--sans); font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.tag.good { background: var(--good-soft); color: var(--good); }
+.tag.bad { background: var(--bad-soft); color: var(--bad); }
+.tag.opp { background: var(--surface-2); color: var(--muted); }
+.n-mistake { color: var(--bad); font-weight: 600; }
+.n-title { font-family: var(--serif); font-weight: 700; font-size: 19px; }
+.n-sub { color: var(--muted); margin-top: 4px; }
+.thinking::after { content: "…"; display: inline-block; animation: blink 1.2s steps(4) infinite; width: 1.2em; overflow: hidden; vertical-align: bottom; }
+@keyframes blink { 0% { width: 0; } 100% { width: 1.2em; } }
+.done-box { display: grid; gap: 6px; }
+.done-box .stars { font-size: 22px; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctrls .btn { flex: 1 1 auto; min-width: 0; padding: 8px 10px; }
+.ctrls .grow { flex: 1 1 100%; }
+.nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; flex: 1 1 100%; }
+.nav .btn { padding: 8px 0; }
+.ctl-btn { display: inline-flex; flex-direction: column; gap: 2px; font-size: 12.5px; font-weight: 500; }
+
+.sheet-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.sheet { position: relative; max-height: 180px; overflow-y: auto; padding: 4px 0; font-variant-numeric: tabular-nums; }
+.srow { display: grid; grid-template-columns: 44px 1fr 1fr; align-items: center; }
+.srow:nth-child(even) { background: var(--surface-2); }
+.sn { color: var(--muted); font-size: 13px; text-align: right; padding-right: 12px; }
+.sm { border: 0; background: transparent; text-align: left; padding: 6px 8px; font-size: 15px; border-radius: 6px; min-height: 32px; }
+.sm.cur { background: var(--accent-soft); font-weight: 700; }
+.sm:disabled { cursor: default; }
+.sheet-empty { color: var(--muted); padding: 10px 14px; font-size: 14px; }
+
+/* ---------- board ---------- */
+.board {
+  position: relative; width: var(--bsize); height: var(--bsize);
+  border-radius: 6px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 0 0 1px var(--board-edge), var(--shadow);
+}
+.sqs { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: 100%; height: 100%; }
+.sq { position: relative; }
+.sq.l { background-color: var(--sq-l); } .sq.d { background-color: var(--sq-d); }
+.sq::before { content: ""; position: absolute; inset: 0; pointer-events: none; }
+.sq.last::before { background: var(--hl-last); }
+.sq.sel::before { background: var(--hl-sel); }
+.sq.m-good::before { background: rgba(46, 160, 90, .5); }
+.sq.m-bad::before { background: rgba(214, 52, 40, .55); }
+.sq.m-hint { box-shadow: inset 0 0 0 4px #e0a32e; }
+.sq.chk { background-image: radial-gradient(circle, rgba(225, 40, 30, .9) 0%, rgba(225, 40, 30, .45) 38%, rgba(225, 40, 30, 0) 70%); }
+.sq.tgt::after { content: ""; position: absolute; left: 50%; top: 50%; width: 30%; height: 30%; transform: translate(-50%, -50%); border-radius: 50%; background: var(--hl-dot); z-index: 3; pointer-events: none; }
+.sq.cap::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle, transparent 62%, var(--hl-dot) 64%); z-index: 3; pointer-events: none; }
+.pw { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; }
+.sq.anim { z-index: 5; }
+.pc { width: 88%; height: 88%; pointer-events: none; }
+.sq.lift .pw { opacity: .28; }
+.coord { position: absolute; z-index: 1; font-size: clamp(8.5px, 2.4vw, 12px); font-weight: 600; line-height: 1; pointer-events: none; }
+.coord.f { right: 5%; bottom: 4%; }
+.coord.r { left: 5%; top: 5%; }
+.sq.l .coord { color: var(--sq-d); } .sq.d .coord { color: var(--sq-l); }
+.arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+.ghost { position: absolute; z-index: 8; width: 12.5%; height: 12.5%; pointer-events: none; transform: translate(-50%, -60%) scale(1.18); display: grid; place-items: center; }
+.ghost svg { width: 88%; height: 88%; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .3)); }
+.promo { position: absolute; inset: 0; z-index: 9; background: rgba(10, 14, 24, .55); display: grid; place-items: center; }
+.promo-card { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: var(--surface); padding: 10px; border-radius: 14px; width: 82%; box-shadow: var(--shadow); }
+.promo-card button { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); display: grid; place-items: center; padding: 0; }
+.promo-card svg { width: 86%; height: 86%; }
+.promo-title { grid-column: 1 / -1; text-align: center; font-weight: 600; font-size: 14px; padding: 2px 0 4px; }
+
+/* ---------- modal ---------- */
+.modal { position: fixed; inset: 0; z-index: 50; background: rgba(8, 12, 22, .5); display: grid; align-items: end; justify-items: center; }
+.modal-card {
+  width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-shadow: var(--shadow);
+}
+.modal-card h2 { font-family: var(--serif); margin: 0 0 4px; font-size: 22px; }
+.modal-card .field:first-of-type { margin-top: 14px; }
+.swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.swatch { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px; display: grid; gap: 6px; justify-items: center; font-size: 13.5px; }
+.swatch[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.swatch .sw { width: 48px; height: 48px; border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-weight: 500; }
+.switch input { appearance: none; -webkit-appearance: none; width: 46px; height: 28px; border-radius: 14px; background: var(--surface-2); position: relative; flex: none; border: 1px solid var(--line); cursor: pointer; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .15s; }
+.switch input:checked { background: var(--good); border-color: var(--good); }
+.switch input:checked::after { transform: translateX(18px); }
+.install { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; margin-top: 16px; font-size: 14px; }
+.install p { margin: 4px 0 0; color: var(--muted); }
+.modal-actions { display: grid; gap: 8px; margin-top: 18px; }
+.confirm-card { border-radius: 20px; margin: 16px; width: calc(100% - 32px); align-self: center; padding-bottom: 20px; }
+.confirm-card p { color: var(--muted); }
+
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: var(--shadow); }
+
+@media (min-width: 640px) {
+  .op-hero { grid-template-columns: 240px 1fr; align-items: center; }
+  .op-hero .mini { max-width: 240px; }
+  .quick { grid-template-columns: 1fr 1fr; }
+  .levels { grid-template-columns: repeat(3, 1fr); }
+  .modal { align-items: center; }
+  .modal-card { border-radius: 20px; }
+}
+@media (min-width: 900px) {
+  .bscreen { margin: 0; }
+  .bhead { margin: 0 -16px; padding: 8px 10px; }
+  .blayout { grid-template-columns: auto minmax(300px, 380px); justify-content: center; align-items: start; gap: 24px; padding: 4px 0 0; }
+  .bcol { --bsize: max(300px, min(calc(100vh - 150px), 640px, calc(100vw - 460px))); }
+  @supports (height: 100dvh) { .bcol { --bsize: max(300px, min(calc(100dvh - 150px), 640px, calc(100vw - 460px))); } }
+  .scol { max-width: none; }
+  .sheet { max-height: 340px; }
+  .page-title { font-size: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .thinking::after { animation: none; width: auto; }
+  * { transition: none !important; }
+}
+
+/* ---------- variation map ---------- */
+.sec-lead { color: var(--muted); margin: -4px 0 12px; font-size: 14.5px; max-width: 62ch; }
+.vmap { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 16px; }
+.vrun { line-height: 1.85; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.vrun .vm { white-space: nowrap; }
+.vrun .vm.own { color: var(--ink); font-weight: 600; }
+.vbr { list-style: none; margin: 10px 0 0; padding: 0 0 0 12px; border-left: 2px solid var(--line); display: grid; gap: 16px; }
+.vbr > li { min-width: 0; }
+.vhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.vfirst { font-family: var(--serif); font-size: 17px; }
+.vnote { margin: 3px 0 0; font-size: 14px; color: var(--muted); max-width: 60ch; }
+.vreply { margin: 4px 0 0; font-size: 14px; max-width: 60ch; }
+.vreply b { color: var(--good); font-weight: 600; }
+.vleaf { margin-top: 8px; background: var(--surface-2); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.vleaf-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.vleaf-name { font-weight: 600; font-size: 15px; }
+.vleaf-act { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.btn.sm { min-height: 38px; padding: 6px 10px; font-size: 14px; border-radius: 10px; }
+.btn.sm svg.i { width: 18px; height: 18px; }
+.cta-col .hint { margin: 0; }
+.alts { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.alts-h { font-size: 14px; color: var(--muted); margin-bottom: 8px !important; }
+.alt-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.alt { display: grid; gap: 1px; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 6px 10px; font-size: 13px; color: var(--muted); max-width: 100%; }
+.alt b { font-family: var(--serif); font-size: 15px; color: var(--ink); }
+.alt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.n-var { margin-top: 4px !important; font-size: 14px; color: var(--accent); font-weight: 600; }
+.cover { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+.cover .bar { flex: 1; margin: 0; height: 5px; }
+
+@media (display-mode: standalone) { .install { display: none; } }
+</style>
+</head>
+<body>
+<div id="view"></div>
+<nav class="tabbar" id="tabbar" aria-label="Разделы"></nav>
+<script>
+function ChessEngineModule() {
+  'use strict';
+  var P = 1, N = 2, B = 3, R = 4, Q = 5, K = 6;
+  var F_NONE = 0, F_DOUBLE = 1, F_EP = 2, F_CASTLE = 3;
+  var N_OFF = [-33, -31, -18, -14, 14, 18, 31, 33];
+  var B_OFF = [-17, -15, 15, 17];
+  var R_OFF = [-16, -1, 1, 16];
+  var K_OFF = [-17, -16, -15, -1, 1, 15, 16, 17];
+  var VAL = [0, 100, 320, 330, 500, 900, 0];
+  var MATE = 100000, INF = 1000000;
+
+  var CASTLE_MASK = new Uint8Array(128);
+  for (var i = 0; i < 128; i++) CASTLE_MASK[i] = 15;
+  CASTLE_MASK[0] = 13; CASTLE_MASK[7] = 14; CASTLE_MASK[4] = 12;
+  CASTLE_MASK[112] = 7; CASTLE_MASK[119] = 11; CASTLE_MASK[116] = 3;
+
+  // Zobrist keys (seeded so they are identical everywhere)
+  var seed = 0x2545F491;
+  function rnd() { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return seed | 0; }
+  var ZLO = new Int32Array(16 * 128), ZHI = new Int32Array(16 * 128);
+  for (i = 0; i < 16 * 128; i++) { ZLO[i] = rnd(); ZHI[i] = rnd(); }
+  var ZC_LO = new Int32Array(16), ZC_HI = new Int32Array(16);
+  for (i = 0; i < 16; i++) { ZC_LO[i] = rnd(); ZC_HI[i] = rnd(); }
+  var ZE_LO = new Int32Array(128), ZE_HI = new Int32Array(128);
+  for (i = 0; i < 128; i++) { ZE_LO[i] = rnd(); ZE_HI[i] = rnd(); }
+  var ZS_LO = rnd(), ZS_HI = rnd();
+
+  function enc(from, to, promo, flag) { return from | (to << 7) | (promo << 14) | (flag << 18); }
+  function mFrom(m) { return m & 127; }
+  function mTo(m) { return (m >> 7) & 127; }
+  function mPromo(m) { return (m >> 14) & 7; }
+  function mFlag(m) { return (m >> 18) & 3; }
+  function sqName(s) { return 'abcdefgh'[s & 7] + ((s >> 4) + 1); }
+  function sqParse(n) { return (n.charCodeAt(1) - 49) * 16 + (n.charCodeAt(0) - 97); }
+
+  var START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  var PCH = ' pnbrqk';
+
+  function Position(fen) {
+    this.board = new Int8Array(128);
+    this.side = 0; this.castle = 0; this.ep = -1; this.half = 0; this.full = 1;
+    this.kings = [4, 116];
+    this.lo = 0; this.hi = 0;
+    this.ply = 0;
+    var S = 2000;
+    this.uMove = new Int32Array(S); this.uCap = new Int8Array(S); this.uCastle = new Int8Array(S);
+    this.uEp = new Int16Array(S); this.uHalf = new Int16Array(S);
+    this.hLo = new Int32Array(S); this.hHi = new Int32Array(S);
+    this.setFEN(fen || START);
+  }
+  var PP = Position.prototype;
+
+  PP.setFEN = function (fen) {
+    var parts = fen.trim().split(/\s+/), b = this.board, i;
+    for (i = 0; i < 128; i++) b[i] = 0;
+    var rank = 7, file = 0, rows = parts[0];
+    for (i = 0; i < rows.length; i++) {
+      var c = rows[i];
+      if (c === '/') { rank--; file = 0; continue; }
+      if (c >= '1' && c <= '8') { file += +c; continue; }
+      var lower = c.toLowerCase(), t = PCH.indexOf(lower), col = c === lower ? 1 : 0;
+      var sq = rank * 16 + file;
+      b[sq] = t | (col << 3);
+      if (t === K) this.kings[col] = sq;
+      file++;
+    }
+    this.side = parts[1] === 'b' ? 1 : 0;
+    this.castle = 0;
+    var cs = parts[2] || '-';
+    if (cs.indexOf('K') >= 0) this.castle |= 1;
+    if (cs.indexOf('Q') >= 0) this.castle |= 2;
+    if (cs.indexOf('k') >= 0) this.castle |= 4;
+    if (cs.indexOf('q') >= 0) this.castle |= 8;
+    this.ep = parts[3] && parts[3] !== '-' ? sqParse(parts[3]) : -1;
+    this.half = parseInt(parts[4] || '0', 10);
+    this.full = parseInt(parts[5] || '1', 10);
+    this.ply = 0;
+    this.computeHash();
+    this.hLo[0] = this.lo; this.hHi[0] = this.hi;
+  };
+
+  PP.computeHash = function () {
+    var lo = 0, hi = 0, b = this.board;
+    for (var s = 0; s < 128; s++) {
+      if (s & 0x88) { s += 7; continue; }
+      if (b[s]) { lo ^= ZLO[b[s] * 128 + s]; hi ^= ZHI[b[s] * 128 + s]; }
+    }
+    lo ^= ZC_LO[this.castle]; hi ^= ZC_HI[this.castle];
+    if (this.ep >= 0) { lo ^= ZE_LO[this.ep]; hi ^= ZE_HI[this.ep]; }
+    if (this.side) { lo ^= ZS_LO; hi ^= ZS_HI; }
+    this.lo = lo; this.hi = hi;
+  };
+
+  PP.fen = function () {
+    var out = '', b = this.board;
+    for (var r = 7; r >= 0; r--) {
+      var empty = 0;
+      for (var f = 0; f < 8; f++) {
+        var p = b[r * 16 + f];
+        if (!p) { empty++; continue; }
+        if (empty) { out += empty; empty = 0; }
+        var ch = PCH[p & 7];
+        out += (p >> 3) ? ch : ch.toUpperCase();
+      }
+      if (empty) out += empty;
+      if (r) out += '/';
+    }
+    var cs = '';
+    if (this.castle & 1) cs += 'K';
+    if (this.castle & 2) cs += 'Q';
+    if (this.castle & 4) cs += 'k';
+    if (this.castle & 8) cs += 'q';
+    return out + ' ' + (this.side ? 'b' : 'w') + ' ' + (cs || '-') + ' ' +
+      (this.ep >= 0 ? sqName(this.ep) : '-') + ' ' + this.half + ' ' + this.full;
+  };
+
+  PP.attacked = function (sq, by) {
+    var b = this.board, t, i, s, p;
+    if (by === 0) {
+      s = sq - 15; if (!(s & 0x88) && b[s] === P) return true;
+      s = sq - 17; if (!(s & 0x88) && b[s] === P) return true;
+    } else {
+      s = sq + 15; if (!(s & 0x88) && b[s] === (P | 8)) return true;
+      s = sq + 17; if (!(s & 0x88) && b[s] === (P | 8)) return true;
+    }
+    var kn = N | (by << 3), kg = K | (by << 3);
+    for (i = 0; i < 8; i++) {
+      s = sq + N_OFF[i]; if (!(s & 0x88) && b[s] === kn) return true;
+      s = sq + K_OFF[i]; if (!(s & 0x88) && b[s] === kg) return true;
+    }
+    var bb = B | (by << 3), rr = R | (by << 3), qq = Q | (by << 3);
+    for (i = 0; i < 4; i++) {
+      var d = B_OFF[i]; s = sq + d;
+      while (!(s & 0x88)) {
+        p = b[s];
+        if (p) { if (p === bb || p === qq) return true; break; }
+        s += d;
+      }
+      d = R_OFF[i]; s = sq + d;
+      while (!(s & 0x88)) {
+        p = b[s];
+        if (p) { if (p === rr || p === qq) return true; break; }
+        s += d;
+      }
+    }
+    return false;
+  };
+
+  PP.inCheck = function (color) {
+    if (color === undefined) color = this.side;
+    return this.attacked(this.kings[color], color ^ 1);
+  };
+
+  // Generate pseudo-legal moves. capsOnly: captures + queen promotions
+  PP.gen = function (out, capsOnly) {
+    var b = this.board, us = this.side, them = us ^ 1, n = 0, i, s, d, p, t, cp;
+    for (var sq = 0; sq < 128; sq++) {
+      if (sq & 0x88) { sq += 7; continue; }
+      p = b[sq];
+      if (!p || (p >> 3) !== us) continue;
+      t = p & 7;
+      if (t === P) {
+        var dir = us ? -16 : 16, r = sq >> 4;
+        var promoRank = us ? 1 : 6, startRank = us ? 6 : 1;
+        for (i = -1; i <= 1; i += 2) {
+          s = sq + dir + i;
+          if (s & 0x88) continue;
+          cp = b[s];
+          if (cp && (cp >> 3) === them) {
+            if (r === promoRank) {
+              out[n++] = enc(sq, s, Q, 0);
+              if (!capsOnly) { out[n++] = enc(sq, s, N, 0); out[n++] = enc(sq, s, R, 0); out[n++] = enc(sq, s, B, 0); }
+            } else out[n++] = enc(sq, s, 0, 0);
+          } else if (s === this.ep) out[n++] = enc(sq, s, 0, F_EP);
+        }
+        s = sq + dir;
+        if (!b[s]) {
+          if (r === promoRank) {
+            out[n++] = enc(sq, s, Q, 0);
+            if (!capsOnly) { out[n++] = enc(sq, s, N, 0); out[n++] = enc(sq, s, R, 0); out[n++] = enc(sq, s, B, 0); }
+          } else if (!capsOnly) {
+            out[n++] = enc(sq, s, 0, 0);
+            if (r === startRank && !b[s + dir]) out[n++] = enc(sq, s + dir, 0, F_DOUBLE);
+          }
+        }
+      } else if (t === N || t === K) {
+        var offs = t === N ? N_OFF : K_OFF;
+        for (i = 0; i < 8; i++) {
+          s = sq + offs[i];
+          if (s & 0x88) continue;
+          cp = b[s];
+          if (cp) { if ((cp >> 3) === them) out[n++] = enc(sq, s, 0, 0); }
+          else if (!capsOnly) out[n++] = enc(sq, s, 0, 0);
+        }
+        if (t === K && !capsOnly) {
+          if (us === 0 && sq === 4) {
+            if ((this.castle & 1) && !b[5] && !b[6] && b[7] === R &&
+              !this.attacked(4, 1) && !this.attacked(5, 1) && !this.attacked(6, 1)) out[n++] = enc(4, 6, 0, F_CASTLE);
+            if ((this.castle & 2) && !b[3] && !b[2] && !b[1] && b[0] === R &&
+              !this.attacked(4, 1) && !this.attacked(3, 1) && !this.attacked(2, 1)) out[n++] = enc(4, 2, 0, F_CASTLE);
+          } else if (us === 1 && sq === 116) {
+            if ((this.castle & 4) && !b[117] && !b[118] && b[119] === (R | 8) &&
+              !this.attacked(116, 0) && !this.attacked(117, 0) && !this.attacked(118, 0)) out[n++] = enc(116, 118, 0, F_CASTLE);
+            if ((this.castle & 8) && !b[115] && !b[114] && !b[113] && b[112] === (R | 8) &&
+              !this.attacked(116, 0) && !this.attacked(115, 0) && !this.attacked(114, 0)) out[n++] = enc(116, 114, 0, F_CASTLE);
+          }
+        }
+      } else {
+        var dirs = t === B ? B_OFF : t === R ? R_OFF : K_OFF;
+        var nd = dirs.length;
+        for (i = 0; i < nd; i++) {
+          d = dirs[i]; s = sq + d;
+          while (!(s & 0x88)) {
+            cp = b[s];
+            if (cp) { if ((cp >> 3) === them) out[n++] = enc(sq, s, 0, 0); break; }
+            if (!capsOnly) out[n++] = enc(sq, s, 0, 0);
+            s += d;
+          }
+        }
+      }
+    }
+    return n;
+  };
+
+  PP.make = function (m) {
+    var b = this.board, from = m & 127, to = (m >> 7) & 127, promo = (m >> 14) & 7, flag = (m >> 18) & 3;
+    var us = this.side, p = b[from], cap = b[to], k = this.ply;
+    this.uMove[k] = m; this.uCastle[k] = this.castle; this.uEp[k] = this.ep; this.uHalf[k] = this.half;
+    var lo = this.lo, hi = this.hi;
+    if (this.ep >= 0) { lo ^= ZE_LO[this.ep]; hi ^= ZE_HI[this.ep]; }
+    lo ^= ZC_LO[this.castle]; hi ^= ZC_HI[this.castle];
+    if (flag === F_EP) {
+      var cs = to + (us ? 16 : -16);
+      cap = b[cs]; b[cs] = 0;
+      lo ^= ZLO[cap * 128 + cs]; hi ^= ZHI[cap * 128 + cs];
+    } else if (cap) {
+      lo ^= ZLO[cap * 128 + to]; hi ^= ZHI[cap * 128 + to];
+    }
+    this.uCap[k] = cap;
+    var np = promo ? (promo | (us << 3)) : p;
+    b[to] = np; b[from] = 0;
+    lo ^= ZLO[p * 128 + from]; hi ^= ZHI[p * 128 + from];
+    lo ^= ZLO[np * 128 + to]; hi ^= ZHI[np * 128 + to];
+    if (flag === F_CASTLE) {
+      var rf, rt;
+      if (to === 6) { rf = 7; rt = 5; } else if (to === 2) { rf = 0; rt = 3; }
+      else if (to === 118) { rf = 119; rt = 117; } else { rf = 112; rt = 115; }
+      var rk = b[rf]; b[rt] = rk; b[rf] = 0;
+      lo ^= ZLO[rk * 128 + rf] ^ ZLO[rk * 128 + rt]; hi ^= ZHI[rk * 128 + rf] ^ ZHI[rk * 128 + rt];
+    }
+    if ((p & 7) === K) this.kings[us] = to;
+    this.castle &= CASTLE_MASK[from] & CASTLE_MASK[to];
+    lo ^= ZC_LO[this.castle]; hi ^= ZC_HI[this.castle];
+    this.ep = -1;
+    if (flag === F_DOUBLE) {
+      var ep = (from + to) >> 1, enemyP = P | ((us ^ 1) << 3);
+      if ((!((to - 1) & 0x88) && b[to - 1] === enemyP) || (!((to + 1) & 0x88) && b[to + 1] === enemyP)) {
+        this.ep = ep; lo ^= ZE_LO[ep]; hi ^= ZE_HI[ep];
+      }
+    }
+    this.half = ((p & 7) === P || cap) ? 0 : this.half + 1;
+    if (us) this.full++;
+    this.side = us ^ 1;
+    lo ^= ZS_LO; hi ^= ZS_HI;
+    this.lo = lo; this.hi = hi;
+    this.ply = k + 1;
+    this.hLo[k + 1] = lo; this.hHi[k + 1] = hi;
+  };
+
+  PP.unmake = function () {
+    var k = --this.ply, b = this.board, m = this.uMove[k];
+    var from = m & 127, to = (m >> 7) & 127, promo = (m >> 14) & 7, flag = (m >> 18) & 3;
+    this.side ^= 1;
+    var us = this.side, p = b[to];
+    if (promo) p = P | (us << 3);
+    b[from] = p; b[to] = 0;
+    var cap = this.uCap[k];
+    if (flag === F_EP) b[to + (us ? 16 : -16)] = cap; else b[to] = cap;
+    if (flag === F_CASTLE) {
+      var rf, rt;
+      if (to === 6) { rf = 7; rt = 5; } else if (to === 2) { rf = 0; rt = 3; }
+      else if (to === 118) { rf = 119; rt = 117; } else { rf = 112; rt = 115; }
+      b[rf] = b[rt]; b[rt] = 0;
+    }
+    if ((p & 7) === K) this.kings[us] = from;
+    this.castle = this.uCastle[k]; this.ep = this.uEp[k]; this.half = this.uHalf[k];
+    if (us) this.full--;
+    this.lo = this.hLo[k]; this.hi = this.hHi[k];
+  };
+
+  PP.makeNull = function () {
+    var k = this.ply;
+    this.uMove[k] = 0; this.uEp[k] = this.ep; this.uHalf[k] = this.half; this.uCastle[k] = this.castle; this.uCap[k] = 0;
+    var lo = this.lo, hi = this.hi;
+    if (this.ep >= 0) { lo ^= ZE_LO[this.ep]; hi ^= ZE_HI[this.ep]; }
+    this.ep = -1; this.side ^= 1; lo ^= ZS_LO; hi ^= ZS_HI;
+    this.half = 0;
+    this.lo = lo; this.hi = hi; this.ply = k + 1;
+    this.hLo[k + 1] = lo; this.hHi[k + 1] = hi;
+  };
+  PP.unmakeNull = function () {
+    var k = --this.ply;
+    this.side ^= 1; this.ep = this.uEp[k]; this.half = this.uHalf[k];
+    this.lo = this.hLo[k]; this.hi = this.hHi[k];
+  };
+
+  PP.legalMoves = function () {
+    var buf = new Array(256), n = this.gen(buf, false), out = [], us = this.side;
+    for (var i = 0; i < n; i++) {
+      this.make(buf[i]);
+      if (!this.attacked(this.kings[us], us ^ 1)) out.push(buf[i]);
+      this.unmake();
+    }
+    return out;
+  };
+
+  PP.repetitions = function () {
+    var c = 0, k = this.ply, lim = Math.max(0, k - this.half);
+    for (var j = k - 2; j >= lim; j -= 2) if (this.hLo[j] === this.lo && this.hHi[j] === this.hi) c++;
+    return c;
+  };
+
+  PP.insufficient = function () {
+    var b = this.board, minors = 0, bishSq = [];
+    for (var s = 0; s < 128; s++) {
+      if (s & 0x88) { s += 7; continue; }
+      var t = b[s] & 7;
+      if (!t || t === K) continue;
+      if (t === P || t === R || t === Q) return false;
+      minors++;
+      if (t === B) bishSq.push(((s >> 4) + (s & 7)) & 1);
+    }
+    if (minors <= 1) return true;
+    if (minors === bishSq.length) { // only bishops
+      for (var i = 1; i < bishSq.length; i++) if (bishSq[i] !== bishSq[0]) return false;
+      return true;
+    }
+    return false;
+  };
+
+  PP.status = function () {
+    var moves = this.legalMoves();
+    if (!moves.length) {
+      if (this.inCheck()) return { over: true, result: this.side ? '1-0' : '0-1', reason: 'mate' };
+      return { over: true, result: '1/2-1/2', reason: 'stalemate' };
+    }
+    if (this.half >= 100) return { over: true, result: '1/2-1/2', reason: 'fifty' };
+    if (this.repetitions() >= 2) return { over: true, result: '1/2-1/2', reason: 'repetition' };
+    if (this.insufficient()) return { over: true, result: '1/2-1/2', reason: 'material' };
+    return { over: false };
+  };
+
+  var LET = ['', '', 'N', 'B', 'R', 'Q', 'K'];
+  PP.san = function (m, legal) {
+    var b = this.board, from = mFrom(m), to = mTo(m), promo = mPromo(m), flag = mFlag(m);
+    var p = b[from], t = p & 7, s;
+    if (flag === F_CASTLE) s = (to & 7) === 6 ? 'O-O' : 'O-O-O';
+    else {
+      var capture = b[to] || flag === F_EP;
+      if (t === P) {
+        s = capture ? 'abcdefgh'[from & 7] + 'x' + sqName(to) : sqName(to);
+        if (promo) s += '=' + LET[promo];
+      } else {
+        legal = legal || this.legalMoves();
+        var sameFile = false, sameRank = false, amb = false;
+        for (var i = 0; i < legal.length; i++) {
+          var o = legal[i], of = mFrom(o);
+          if (o === m || mTo(o) !== to || of === from || (b[of] & 7) !== t) continue;
+          amb = true;
+          if ((of & 7) === (from & 7)) sameFile = true;
+          if ((of >> 4) === (from >> 4)) sameRank = true;
+        }
+        var dis = '';
+        if (amb) {
+          if (!sameFile) dis = 'abcdefgh'[from & 7];
+          else if (!sameRank) dis = '' + ((from >> 4) + 1);
+          else dis = sqName(from);
+        }
+        s = LET[t] + dis + (capture ? 'x' : '') + sqName(to);
+      }
+    }
+    this.make(m);
+    if (this.inCheck()) s += this.legalMoves().length ? '+' : '#';
+    this.unmake();
+    return s;
+  };
+
+  function cleanSan(s) { return s.replace(/[+#!?]/g, '').replace(/0/g, 'O').replace(/=/, ''); }
+
+  PP.parseSan = function (san) {
+    var want = cleanSan(san), legal = this.legalMoves();
+    for (var i = 0; i < legal.length; i++) {
+      if (cleanSan(this.san(legal[i], legal)) === want) return legal[i];
+    }
+    return 0;
+  };
+
+  PP.uci = function (m) {
+    var s = sqName(mFrom(m)) + sqName(mTo(m));
+    if (mPromo(m)) s += 'nbrq'[mPromo(m) - 2];
+    return s;
+  };
+  PP.parseUci = function (u) {
+    var from = sqParse(u.slice(0, 2)), to = sqParse(u.slice(2, 4));
+    var promo = u.length > 4 ? 'nbrq'.indexOf(u[4]) + 2 : 0;
+    var legal = this.legalMoves();
+    for (var i = 0; i < legal.length; i++) {
+      var m = legal[i];
+      if (mFrom(m) === from && mTo(m) === to && mPromo(m) === promo) return m;
+    }
+    return 0;
+  };
+
+  // ---------------- Evaluation ----------------
+  function tbl(a) { return a; }
+  var PST = [];
+  PST[P] = tbl([0, 0, 0, 0, 0, 0, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 10, 10, 20, 30, 30, 20, 10, 10, 5, 5, 10, 25, 25, 10, 5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5, -5, -10, 0, 0, -10, -5, 5, 5, 10, 10, -20, -20, 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0]);
+  PST[N] = tbl([-50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 0, 0, 0, -20, -40, -30, 0, 10, 15, 15, 10, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0, 15, 20, 20, 15, 0, -30, -30, 5, 10, 15, 15, 10, 5, -30, -40, -20, 0, 5, 5, 0, -20, -40, -50, -40, -30, -30, -30, -30, -40, -50]);
+  PST[B] = tbl([-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10, 5, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10, 10, 10, 10, 10, -10, -10, 5, 0, 0, 0, 0, 5, -10, -20, -10, -10, -10, -10, -10, -10, -20]);
+  PST[R] = tbl([0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, 10, 10, 10, 10, 5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 0, 0, 0, 5, 5, 0, 0, 0]);
+  PST[Q] = tbl([-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 5, 5, 5, 0, -10, -5, 0, 5, 5, 5, 5, 0, -5, 0, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5, 5, 5, 5, 0, -10, -10, 0, 5, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20]);
+  var KMG = [-30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -20, -30, -30, -40, -40, -30, -30, -20, -10, -20, -20, -20, -20, -20, -20, -10, 20, 20, 0, 0, 0, 0, 20, 20, 20, 30, 10, 0, 0, 10, 30, 20];
+  var KEG = [-50, -40, -30, -20, -20, -30, -40, -50, -30, -20, -10, 0, 0, -10, -20, -30, -30, -10, 20, 30, 30, 20, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30, -10, 20, 30, 30, 20, -10, -30, -30, -30, 0, 0, 0, 0, -30, -30, -50, -30, -30, -30, -30, -30, -30, -50];
+  var PASSED = [0, 5, 10, 20, 35, 60, 100, 0];
+  var PHASE_W = [0, 0, 1, 1, 2, 4, 0];
+
+  var wMin = new Int8Array(10), wMax = new Int8Array(10), bMin = new Int8Array(10), bMax = new Int8Array(10);
+  var wCnt = new Int8Array(10), bCnt = new Int8Array(10);
+
+  PP.evaluate = function () {
+    var b = this.board, s, p, t, c, r, f, idx;
+    var mg = 0, phase = 0, bishops = [0, 0];
+    for (f = 0; f < 10; f++) { wMin[f] = 9; wMax[f] = -1; bMin[f] = 9; bMax[f] = -1; wCnt[f] = 0; bCnt[f] = 0; }
+    for (s = 0; s < 128; s++) {
+      if (s & 0x88) { s += 7; continue; }
+      p = b[s]; if (!p) continue;
+      t = p & 7; c = p >> 3; r = s >> 4; f = s & 7;
+      phase += PHASE_W[t];
+      if (t === P) {
+        if (c === 0) { wCnt[f + 1]++; if (r < wMin[f + 1]) wMin[f + 1] = r; if (r > wMax[f + 1]) wMax[f + 1] = r; }
+        else { bCnt[f + 1]++; if (r < bMin[f + 1]) bMin[f + 1] = r; if (r > bMax[f + 1]) bMax[f + 1] = r; }
+      }
+      if (t === B) bishops[c]++;
+    }
+    if (phase > 24) phase = 24;
+    var eg = 0, wk = this.kings[0], bk = this.kings[1];
+    for (s = 0; s < 128; s++) {
+      if (s & 0x88) { s += 7; continue; }
+      p = b[s]; if (!p) continue;
+      t = p & 7; c = p >> 3; r = s >> 4; f = s & 7;
+      idx = c === 0 ? (7 - r) * 8 + f : r * 8 + f;
+      var sign = c === 0 ? 1 : -1;
+      if (t === K) {
+        mg += sign * KMG[idx]; eg += sign * KEG[idx];
+        continue;
+      }
+      var v = VAL[t] + PST[t][idx];
+      if (t === P) {
+        var fi = f + 1;
+        if (c === 0) {
+          if (wCnt[fi] > 1 && r !== wMin[fi]) v -= 12;
+          if (!wCnt[fi - 1] && !wCnt[fi + 1]) v -= 12;
+          if (bMax[fi - 1] <= r && bMax[fi] <= r && bMax[fi + 1] <= r && wMax[fi] === r) {
+            eg += PASSED[r] * 1.5; v += PASSED[r] * 0.5;
+          }
+        } else {
+          if (bCnt[fi] > 1 && r !== bMax[fi]) v -= 12;
+          if (!bCnt[fi - 1] && !bCnt[fi + 1]) v -= 12;
+          var wmn = Math.min(wMin[fi - 1], wMin[fi], wMin[fi + 1]);
+          if (wmn >= r && bMin[fi] === r) {
+            eg -= PASSED[7 - r] * 1.5; v += PASSED[7 - r] * 0.5;
+          }
+        }
+      } else if (t === R) {
+        var fi2 = f + 1, own = c === 0 ? wCnt[fi2] : bCnt[fi2], opp = c === 0 ? bCnt[fi2] : wCnt[fi2];
+        if (!own) v += opp ? 8 : 16;
+      }
+      mg += sign * v; eg += sign * v;
+    }
+    if (bishops[0] >= 2) { mg += 30; eg += 40; }
+    if (bishops[1] >= 2) { mg -= 30; eg -= 40; }
+    // in endgames, drive the enemy king to the edge when ahead
+    if (phase <= 6) {
+      var lead = eg;
+      var kd = Math.abs((wk >> 4) - (bk >> 4)) + Math.abs((wk & 7) - (bk & 7));
+      if (lead > 200) eg += (14 - kd) * 4;
+      else if (lead < -200) eg -= (14 - kd) * 4;
+    }
+    var score = (mg * phase + eg * (24 - phase)) / 24;
+    score = score | 0;
+    return (this.side === 0 ? score : -score) + 10;
+  };
+
+  // ---------------- Search ----------------
+  var TT_BITS = 19, TT_SIZE = 1 << TT_BITS, TT_MASK = TT_SIZE - 1;
+  var ttHi = new Int32Array(TT_SIZE), ttMove = new Int32Array(TT_SIZE), ttScore = new Int32Array(TT_SIZE);
+  var ttDepth = new Int8Array(TT_SIZE), ttFlag = new Int8Array(TT_SIZE);
+  var EXACT = 1, LOWER = 2, UPPER = 3;
+  var killers = new Int32Array(128 * 2);
+  var history = new Int32Array(16 * 128);
+
+  function Searcher(pos, opts) {
+    this.pos = pos;
+    this.nodes = 0;
+    this.stop = false;
+    this.deadline = opts.time ? Date.now() + opts.time : 0;
+    this.moveBufs = [];
+    this.scoreBufs = [];
+    for (var i = 0; i < 128; i++) { this.moveBufs.push(new Int32Array(256)); this.scoreBufs.push(new Int32Array(256)); }
+  }
+
+  Searcher.prototype.checkTime = function () {
+    if (this.deadline && (this.nodes & 1023) === 0 && Date.now() > this.deadline) this.stop = true;
+  };
+
+  Searcher.prototype.order = function (moves, scores, n, ttm, ply) {
+    var b = this.pos.board, k1 = killers[ply * 2], k2 = killers[ply * 2 + 1];
+    for (var i = 0; i < n; i++) {
+      var m = moves[i], sc;
+      if (m === ttm) sc = 10000000;
+      else {
+        var to = (m >> 7) & 127, cap = b[to], flag = (m >> 18) & 3, promo = (m >> 14) & 7;
+        if (cap || flag === F_EP) {
+          var victim = cap ? VAL[cap & 7] : 100;
+          sc = 1000000 + victim * 10 - VAL[b[m & 127] & 7] / 10;
+        } else if (promo) sc = 900000 + VAL[promo];
+        else if (m === k1) sc = 800000;
+        else if (m === k2) sc = 790000;
+        else sc = history[b[m & 127] * 128 + to];
+      }
+      scores[i] = sc;
+    }
+  };
+
+  function pick(moves, scores, n, i) {
+    var best = i;
+    for (var j = i + 1; j < n; j++) if (scores[j] > scores[best]) best = j;
+    if (best !== i) {
+      var t = moves[i]; moves[i] = moves[best]; moves[best] = t;
+      t = scores[i]; scores[i] = scores[best]; scores[best] = t;
+    }
+    return moves[i];
+  }
+
+  Searcher.prototype.quiesce = function (alpha, beta, ply) {
+    var pos = this.pos;
+    this.nodes++;
+    this.checkTime();
+    if (this.stop) return 0;
+    var stand = pos.evaluate();
+    if (ply >= 120) return stand;
+    if (stand >= beta) return stand;
+    if (stand > alpha) alpha = stand;
+    var moves = this.moveBufs[ply], scores = this.scoreBufs[ply];
+    var n = pos.gen(moves, true), us = pos.side;
+    this.order(moves, scores, n, 0, ply);
+    for (var i = 0; i < n; i++) {
+      var m = pick(moves, scores, n, i);
+      var cap = pos.board[(m >> 7) & 127];
+      if (cap && !((m >> 14) & 7) && stand + VAL[cap & 7] + 200 < alpha) continue; // delta pruning
+      pos.make(m);
+      if (pos.attacked(pos.kings[us], us ^ 1)) { pos.unmake(); continue; }
+      var sc = -this.quiesce(-beta, -alpha, ply + 1);
+      pos.unmake();
+      if (this.stop) return 0;
+      if (sc >= beta) return sc;
+      if (sc > alpha) alpha = sc;
+    }
+    return alpha;
+  };
+
+  Searcher.prototype.hasPieces = function (side) {
+    var b = this.pos.board;
+    for (var s = 0; s < 128; s++) {
+      if (s & 0x88) { s += 7; continue; }
+      var p = b[s];
+      if (p && (p >> 3) === side) { var t = p & 7; if (t !== P && t !== K) return true; }
+    }
+    return false;
+  };
+
+  Searcher.prototype.search = function (depth, alpha, beta, ply, allowNull) {
+    var pos = this.pos;
+    if (ply > 0) {
+      if (pos.half >= 100 || pos.repetitions() > 0) return 0;
+      if (ply >= 100) return pos.evaluate();
+      // mate distance pruning
+      var ma = -MATE + ply; if (alpha < ma) alpha = ma;
+      var mb = MATE - ply - 1; if (beta > mb) beta = mb;
+      if (alpha >= beta) return alpha;
+    }
+    var us = pos.side, inCheck = pos.attacked(pos.kings[us], us ^ 1);
+    if (inCheck) depth++;
+    if (depth <= 0) return this.quiesce(alpha, beta, ply);
+    this.nodes++;
+    this.checkTime();
+    if (this.stop) return 0;
+
+    var idx = pos.lo & TT_MASK, ttm = 0;
+    if (ttHi[idx] === pos.hi && ttFlag[idx]) {
+      ttm = ttMove[idx];
+      if (ply > 0 && ttDepth[idx] >= depth) {
+        var ts = ttScore[idx];
+        if (ts > MATE - 1000) ts -= ply; else if (ts < -MATE + 1000) ts += ply;
+        var fl = ttFlag[idx];
+        if (fl === EXACT) return ts;
+        if (fl === LOWER && ts >= beta) return ts;
+        if (fl === UPPER && ts <= alpha) return ts;
+      }
+    }
+    var pvNode = beta - alpha > 1;
+    if (allowNull && !inCheck && !pvNode && depth >= 3 && this.hasPieces(us) && pos.evaluate() >= beta) {
+      pos.makeNull();
+      var ns = -this.search(depth - 3, -beta, -beta + 1, ply + 1, false);
+      pos.unmakeNull();
+      if (this.stop) return 0;
+      if (ns >= beta) return beta;
+    }
+
+    var moves = this.moveBufs[ply], scores = this.scoreBufs[ply];
+    var n = pos.gen(moves, false);
+    this.order(moves, scores, n, ttm, ply);
+    var legal = 0, best = -INF, bestMove = 0, origAlpha = alpha;
+    for (var i = 0; i < n; i++) {
+      var m = pick(moves, scores, n, i);
+      pos.make(m);
+      if (pos.attacked(pos.kings[us], us ^ 1)) { pos.unmake(); continue; }
+      legal++;
+      var sc;
+      if (legal === 1) sc = -this.search(depth - 1, -beta, -alpha, ply + 1, true);
+      else {
+        var quiet = !this.pos.uCap[pos.ply - 1] && !((m >> 14) & 7);
+        var red = 0;
+        if (quiet && depth >= 3 && legal > 4 && !inCheck && !pos.attacked(pos.kings[pos.side], us)) red = 1;
+        sc = -this.search(depth - 1 - red, -alpha - 1, -alpha, ply + 1, true);
+        if (sc > alpha && !this.stop) sc = -this.search(depth - 1, -beta, -alpha, ply + 1, true);
+      }
+      pos.unmake();
+      if (this.stop) return 0;
+      if (sc > best) { best = sc; bestMove = m; }
+      if (sc > alpha) {
+        alpha = sc;
+        if (alpha >= beta) {
+          if (!pos.board[(m >> 7) & 127] && !((m >> 14) & 7)) {
+            if (killers[ply * 2] !== m) { killers[ply * 2 + 1] = killers[ply * 2]; killers[ply * 2] = m; }
+            var hk = pos.board[m & 127] * 128 + ((m >> 7) & 127);
+            history[hk] += depth * depth;
+            if (history[hk] > 700000) for (var h = 0; h < history.length; h++) history[h] >>= 1;
+          }
+          break;
+        }
+      }
+    }
+    if (!legal) return inCheck ? -MATE + ply : 0;
+    var store = best;
+    if (store > MATE - 1000) store += ply; else if (store < -MATE + 1000) store -= ply;
+    ttHi[idx] = pos.hi; ttMove[idx] = bestMove; ttScore[idx] = store; ttDepth[idx] = depth;
+    ttFlag[idx] = best >= beta ? LOWER : best > origAlpha ? EXACT : UPPER;
+    if (ply === 0) this.rootBest = bestMove;
+    return best;
+  };
+
+  // opts: {depth, time, noise, blunder}
+  function think(pos, opts) {
+    opts = opts || {};
+    var legal = pos.legalMoves();
+    if (!legal.length) return { move: 0, score: 0, depth: 0 };
+    if (legal.length === 1) return { move: legal[0], score: 0, depth: 0 };
+    killers.fill(0);
+    for (var h = 0; h < history.length; h++) history[h] >>= 2;
+    if (opts.blunder && Math.random() < opts.blunder) {
+      return { move: legal[(Math.random() * legal.length) | 0], score: 0, depth: 0 };
+    }
+    var S = new Searcher(pos, opts);
+    if (opts.noise) {
+      // evaluate every root move, then pick with random noise
+      var d = opts.depth || 2, bestM = legal[0], bestS = -INF, sc;
+      for (var i = 0; i < legal.length; i++) {
+        pos.make(legal[i]);
+        sc = -S.search(d - 1, -INF, INF, 1, true);
+        pos.unmake();
+        var noisy = sc + (Math.random() * 2 - 1) * opts.noise;
+        if (noisy > bestS) { bestS = noisy; bestM = legal[i]; }
+      }
+      return { move: bestM, score: bestS | 0, depth: d, nodes: S.nodes };
+    }
+    var maxD = opts.depth || 64, bestMove = legal[0], bestScore = 0, done = 0;
+    for (var depth = 1; depth <= maxD; depth++) {
+      S.rootBest = 0;
+      var score = S.search(depth, -INF, INF, 0, false);
+      if (S.stop) { if (S.rootBest && depth > 1) bestMove = S.rootBest; break; }
+      if (S.rootBest) bestMove = S.rootBest;
+      bestScore = score; done = depth;
+      if (Math.abs(score) > MATE - 200) break;
+      if (opts.time && Date.now() > S.deadline - (opts.time * 0.45)) break;
+    }
+    // sanity: ensure legal
+    if (legal.indexOf(bestMove) < 0) bestMove = legal[0];
+    return { move: bestMove, score: bestScore, depth: done, nodes: S.nodes };
+  }
+
+  function perft(pos, depth) {
+    if (depth === 0) return 1;
+    var buf = new Array(256), n = pos.gen(buf, false), c = 0, us = pos.side;
+    for (var i = 0; i < n; i++) {
+      pos.make(buf[i]);
+      if (!pos.attacked(pos.kings[us], us ^ 1)) c += perft(pos, depth - 1);
+      pos.unmake();
+    }
+    return c;
+  }
+
+  return {
+    Position: Position, think: think, perft: perft, START: START,
+    mFrom: mFrom, mTo: mTo, mPromo: mPromo, mFlag: mFlag, sqName: sqName, sqParse: sqParse,
+    F_CASTLE: F_CASTLE, F_EP: F_EP, MATE: MATE,
+    P: P, N: N, B: B, R: R, Q: Q, K: K
+  };
+}
+
+var PIECE_SHAPES = {
+  p: { s: '<circle cx="50" cy="29" r="12.5"/><path d="M37 77 C37 63 42 55 46 48 L54 48 C58 55 63 63 63 77 Z"/><rect x="35" y="43" width="30" height="7" rx="3.5"/><rect x="27" y="76" width="46" height="11" rx="4"/>', d: '' },
+  r: { s: '<rect x="22" y="77" width="56" height="11" rx="4"/><path d="M32 77 L35 41 L65 41 L68 77 Z"/><path d="M26 19 L37 19 L37 27 L44.5 27 L44.5 19 L55.5 19 L55.5 27 L63 27 L63 19 L74 19 L74 35 L68 41 L32 41 L26 35 Z"/>', d: '<path d="M33 41 H67 M33.5 72 H66.5"/>' },
+  b: { s: '<rect x="22" y="77" width="56" height="11" rx="4"/><path d="M33 77 C35 67 40 61 44 57 L56 57 C60 61 65 67 67 77 Z"/><rect x="35" y="51" width="30" height="8" rx="4"/><path d="M50 17 C63 27 68 39 61 51 L39 51 C32 39 37 27 50 17 Z"/><circle cx="50" cy="14" r="5.5"/>', d: '<path d="M46.5 27 L55.5 39 M38 55 H62"/>' },
+  n: { s: '<rect x="22" y="77" width="56" height="11" rx="4"/><path d="M29 77 L72 77 C75 56 71 36 60 24 L62 10 L52 18 C40 18 28 28 21 44 L18 53 C19 61 27 64 33 59 L44 51 C45 61 35 68 29 77 Z"/>', d: '<path d="M59 26 C66 37 69 52 67 70"/><circle cx="40" cy="33" r="2.6" class="dot"/><circle cx="24" cy="52" r="1.8" class="dot"/>' },
+  q: { s: '<rect x="22" y="77" width="56" height="11" rx="4"/><path d="M31 77 L35 59 L65 59 L69 77 Z"/><path d="M30 61 L18 30 L34 46 L36 24 L45 44 L50 18 L55 44 L64 24 L66 46 L82 30 L70 61 Z"/><circle cx="18" cy="28" r="5.5"/><circle cx="36" cy="21.5" r="5.5"/><circle cx="50" cy="15" r="6"/><circle cx="64" cy="21.5" r="5.5"/><circle cx="82" cy="28" r="5.5"/>', d: '<path d="M32 61 H68 M33.5 72 H66.5"/>' },
+  k: { s: '<rect x="22" y="77" width="56" height="11" rx="4"/><path d="M31 77 L35 57 L65 57 L69 77 Z"/><path d="M30 59 C20 45 33 32 45 40 C47 36 53 36 55 40 C67 32 80 45 70 59 Z"/><rect x="46" y="9" width="8" height="28" rx="2"/><rect x="38.5" y="15.5" width="23" height="8" rx="2"/>', d: '<path d="M32 59 H68 M33.5 72 H66.5"/>' }
+};
+function pieceSymbol(color, type) {
+  var sh = PIECE_SHAPES[type];
+  var fill = color === 'w' ? '#fbf8f1' : '#2a2c33';
+  var out = color === 'w' ? '#1f2228' : '#0e0f12';
+  var det = color === 'w' ? '#1f2228' : '#cfc9bb';
+  return '<g fill="' + out + '" stroke="' + out + '" stroke-width="7" stroke-linejoin="round">' + sh.s + '</g>' +
+    '<g fill="' + fill + '">' + sh.s + '</g>' +
+    (sh.d ? '<g fill="none" stroke="' + det + '" stroke-width="3" stroke-linecap="round">' + sh.d.replace(/class="dot"/g, 'fill="' + det + '" stroke="none"') + '</g>' : '');
+}
+
+var OPENINGS = [
+  // ===================== ЗА БЕЛЫХ =====================
+  {
+    id: 'italian', name: 'Итальянская партия', eco: 'C50–C54', side: 'w', family: 'open', lvl: 1,
+    desc: 'Одно из старейших начал: белые быстро развивают фигуры и нацеливают слона на пункт f7. Подходит для любого уровня — спокойные позиции с понятными планами.',
+    ideas: ['Слон c4 давит на f7 — самое слабое место в лагере чёрных.', 'Ход c3 готовит d2-d4 и захват центра.', 'В тихой версии (d3) белые медленно перестраивают коня b1 через d2–f1 на g3.'],
+    lines: [
+      { name: 'Тихая игра (Джуоко пьяниссимо)', pgn: '1.e4 {Белые занимают центр и открывают диагонали ферзю и слону.} e5 {Симметричный ответ — чёрные тоже претендуют на центр.} 2.Nf3 {Конь развивается с нападением на e5.} Nc6 {Защита пешки с развитием.} 3.Bc4 {Слон смотрит на f7 — пункт, защищённый только королём.} Bc5 {Зеркальный ответ: чёрный слон давит на f2.} 4.c3 {Готовим d2-d4. Пешка c3 также отнимает поле d4 у коня c6.} Nf6 {Контратака на e4.} 5.d3 {Спокойная защита e4. Белые не спешат с d4 и готовят долгое маневрирование.} d6 6.O-O O-O 7.Re1 {Ладья поддерживает e4 и будущий прорыв d3-d4.} a6 {Чёрные готовят отступление Сa7, чтобы слона нельзя было разменять ходом Сe3.} 8.Bb3 {Профилактика: слон уходит от возможного d6-d5 и b7-b5.} Ba7 9.h3 {Не пускаем слона c8 на g4.} h6 10.Nbd2 {Типичный маневр: конь идёт Кd2–f1–g3.} Re8 11.Nf1 Be6 {Чёрные предлагают размен слонов. Позиция равная, но богатая идеями — белые готовят Кg3 и d3-d4.}' },
+      { name: 'Открытая игра 5.d4', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d4 {Классика: белые сразу вскрывают центр.} exd4 6.cxd4 {Белые построили пешечный центр e4–d4.} Bb4+ {Слон отступает с шахом — на c5 он был под ударом.} 7.Bd2 {Надёжная защита. 7.Кc3 ведёт к острейшей атаке Мёллера.} Bxd2+ 8.Nbxd2 d5! {Главный приём чёрных: подрыв центра, иначе белые задавят пешками.} 9.exd5 Nxd5 10.Qb3 {Давление на d5 и b7.} Nce7 {Конь поддерживает коня d5.} 11.O-O O-O 12.Rfe1 c6 {У белых изолированная пешка d4 и активные фигуры, у чёрных — прочная блокада. Равная борьба.}' }
+    ]
+  },
+  {
+    id: 'ruy', name: 'Испанская партия', eco: 'C60–C99', side: 'w', family: 'open', lvl: 2,
+    desc: 'Самое глубокое из открытых начал. Белые давят на коня c6 — защитника пешки e5 — и получают долгосрочную инициативу.',
+    ideas: ['Слон b5 давит на защитника e5, создавая долгосрочное напряжение.', 'План белых — c3 и d4, затем перевод коня b1 через d2–f1 на g3.', 'В разменном варианте белые играют на лучшую пешечную структуру в эндшпиле.'],
+    lines: [
+      { name: 'Закрытый вариант, система Чигорина', pgn: '1.e4 {Начинаем с центра.} e5 2.Nf3 Nc6 3.Bb5 {Испанская: давление на защитника пешки e5.} a6 {Вопрос слону — главный ход.} 4.Ba4 {Слон сохраняет давление.} Nf6 5.O-O {Пешку e4 можно не защищать: после Кxe4 следует Лe1 или d4.} Be7 {Закрытый вариант.} 6.Re1 {Теперь пешка e4 защищена, и белые угрожают взять на c6 и на e5.} b5 7.Bb3 d6 8.c3 {Отступление для слона и подготовка d4.} O-O 9.h3 {Важный ход: не пускаем слона на g4 перед d4.} Na5 {Система Чигорина: конь разменивает опасного слона или вытесняет его.} 10.Bc2 c5 11.d4 Qc7 {Классическая позиция Чигорина. Белые готовят Кbd2–f1–g3, чёрные — давление по линии c.}' },
+      { name: 'Берлинская защита', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6 {Берлинская стена — надёжнейшее оружие чёрных.} 4.O-O Nxe4 {Чёрные берут пешку, но вернут её.} 5.d4 {Самое принципиальное.} Nd6 6.Bxc6 dxc6 7.dxe5 Nf5 8.Qxd8+ Kxd8 {Берлинский эндшпиль: чёрный король без рокировки, зато два слона.} 9.Nc3 Ke8 {Белые играют на продвинутую пешку e5 и перевес на королевском фланге, чёрные — на двух слонов.}' },
+      { name: 'Разменный вариант', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Bxc6 {Разменный вариант: белые портят пешечную структуру чёрных.} dxc6 5.O-O {Пешка e5 теперь под косвенной угрозой.} f6 {Гибкая защита пешки e5.} 6.d4 exd4 7.Nxd4 c5 8.Nb3 Qxd1 9.Rxd1 {Ранний эндшпиль: у белых здоровое большинство 4 против 3 на королевском фланге, у чёрных — два слона.}' }
+    ]
+  },
+  {
+    id: 'scotch', name: 'Шотландская партия', eco: 'C45', side: 'w', family: 'open', lvl: 1,
+    desc: 'Белые сразу вскрывают центр ходом 3.d4 и получают свободную игру. Начало любил Каспаров.',
+    ideas: ['Немедленное вскрытие центра — меньше теории, чем в испанской.', 'После размена на c6 у чёрных сдвоенные пешки, белые давят пешкой e5.'],
+    lines: [
+      { name: 'Вариант Мизеса', pgn: '1.e4 e5 2.Nf3 Nc6 3.d4 {Шотландская: сразу вскрываем центр.} exd4 4.Nxd4 {Конь занимает центральное поле.} Nf6 {Контратака на e4.} 5.Nxc6 {Вариант Мизеса.} bxc6 6.e5 {Пешка с темпом гонит коня.} Qe7 {Связка пешки e5 — ферзь нападает на неё.} 7.Qe2 {Защита e5 и развязка.} Nd5 8.c4 {Гоним коня дальше.} Ba6 {Связка: пешка c4 привязана к защите.} 9.b3 {Укрепляем c4. Острая позиция с обоюдными шансами.}' },
+      { name: 'Вариант 4…Сc5', pgn: '1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Nxd4 Bc5 {Классический ответ: слон нападает на коня d4.} 5.Nxc6 {Самое прямолинейное.} Qf6 {Угроза мата на f2!} 6.Qd2 {Защищаем f2.} dxc6 7.Nc3 {Белые быстро развиваются и готовят длинную рокировку.}' }
+    ]
+  },
+  {
+    id: 'twoknights', name: 'Защита двух коней', eco: 'C55–C59', side: 'w', family: 'open', lvl: 2,
+    desc: 'Белые атакуют пункт f7 ходом 4.Кg5. Чёрные вынуждены жертвовать пешку — а если ошибутся, получат разгромную атаку «Жареная печень».',
+    ideas: ['4.Кg5 — двойной удар по f7 конём и слоном.', 'Правильный ответ чёрных 5…Кa5 с жертвой пешки за развитие.', 'Ошибка 5…Кxd5 позволяет жертву 6.Кxf7! с атакой на короля.'],
+    lines: [
+      { name: 'Главная линия 5…Кa5', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 {Защита двух коней — чёрные контратакуют e4.} 4.Ng5 {Прямая атака на f7.} d5 {Единственный хороший способ закрыть диагональ слона.} 5.exd5 Na5! {Правильно: чёрные жертвуют пешку и гонят слона.} 6.Bb5+ c6 7.dxc6 bxc6 8.Be2 h6 9.Nf3 e4 10.Ne5 Bd6 {У белых лишняя пешка, у чёрных — опережение в развитии и давление. Сложная игра.}' },
+      { name: 'Атака «Жареная печень»', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 d5 5.exd5 Nxd5? {Естественно, но ошибочно!} 6.Nxf7! {Жертва коня ради атаки на короля.} Kxf7 7.Qf3+ {Ферзь нападает на короля и связанного коня d5.} Ke6 {Король вынужден выйти в центр, чтобы удержать коня.} 8.Nc3 {Белые подключают новые силы к атаке на связанного коня. У чёрных очень опасное положение.}' }
+    ]
+  },
+  {
+    id: 'qgd', name: 'Ферзевый гамбит', eco: 'D06–D69', side: 'w', family: 'closed', lvl: 1,
+    desc: 'Главное закрытое начало. Белые предлагают пешку c4 за центр; на практике «гамбит» ненастоящий — пешку легко вернуть.',
+    ideas: ['Пешка c4 подрывает центральную пешку d5.', 'Если чёрные берут c4, белые возвращают её ходами e3 и Сxc4.', 'В отказанном гамбите белые давят связкой Сg5 и готовят атаку меньшинства.'],
+    lines: [
+      { name: 'Отказанный, защита Капабланки', pgn: '1.d4 {Закрытое начало: пешка d4 защищена ферзём.} d5 2.c4 {Ферзевый гамбит: подрываем пешку d5.} e6 {Отказанный гамбит — надёжная поддержка центра.} 3.Nc3 Nf6 {Классический ответ — развитие с защитой d5.} 4.Bg5 {Связка коня f6 усиливает давление на d5.} Be7 {Развязка.} 5.e3 O-O 6.Nf3 Nbd7 7.Rc1 {Ладья на открывающейся линии c.} c6 8.Bd3 dxc4 {Чёрные отдают центр, чтобы выиграть темп.} 9.Bxc4 Nd5! {Освобождающий маневр Капабланки: размены облегчают позицию.} 10.Bxe7 Qxe7 11.O-O Nxc3 12.Rxc3 e5 {Чёрные освободились. Белым предстоит игра против изолированной или висячей пешки после размена в центре.}' },
+      { name: 'Принятый ферзевый гамбит', pgn: '1.d4 d5 2.c4 dxc4 {Принятый гамбит. Пешку не удержать — чёрные рассчитывают на быстрое развитие.} 3.Nf3 {Не пускаем e7-e5.} Nf6 4.e3 {Открываем слона f1 для взятия на c4.} e6 5.Bxc4 c5 {Типичный подрыв центра.} 6.O-O a6 {Готовим b7-b5 с темпом.} 7.dxc5 Qxd1 8.Rxd1 Bxc5 {Симметричная структура, белые чуть лучше развиты.}' },
+      { name: 'Славянская защита', pgn: '1.d4 d5 2.c4 c6 {Славянская: поддерживаем d5, не запирая слона c8.} 3.Nf3 Nf6 4.Nc3 dxc4 {Чёрные берут пешку и готовят Сf5.} 5.a4 {Не даём b7-b5, чтобы удержать пешку.} Bf5 {Слон вышел до e6 — главная идея славянской.} 6.e3 e6 7.Bxc4 Bb4 8.O-O O-O 9.Qe2 {Белые готовят e3-e4 с захватом центра.}' }
+    ]
+  },
+  {
+    id: 'london', name: 'Лондонская система', eco: 'D02, A46', side: 'w', family: 'closed', lvl: 1,
+    desc: 'Система, а не вариант: белые ставят одну и ту же расстановку почти против всего. Минимум теории, понятные планы.',
+    ideas: ['Слон выходит на f4 до хода e3 — иначе он будет заперт.', 'Пирамида c3–d4–e3 очень прочна.', 'План атаки: Кe5, f4 и наступление на королевском фланге.'],
+    lines: [
+      { name: 'Против 2…Кf6 и …c5', pgn: '1.d4 d5 {Симметричный ответ — самая частая реакция.} 2.Bf4 {Слон выходит раньше, чем пешка e3 закроет его.} Nf6 3.e3 c5 {Активный ответ: давление на d4.} 4.c3 {Пирамида c3–d4–e3.} Nc6 5.Nd2 {Конь идёт на d2, чтобы поддержать e4 и Кe5.} e6 6.Ngf3 Bd6 {Чёрные предлагают размен главного лондонского слона.} 7.Bg3 {Сохраняем слона.} O-O 8.Bd3 b6 9.Ne5 {Конь на e5 — типичный форпост. Далее f4 и атака.}' },
+      { name: 'Против староиндийской расстановки', pgn: '1.d4 Nf6 {Гибкий ответ: чёрные не спешат определять пешки.} 2.Bf4 g6 {Чёрные строят фианкетто.} 3.e3 Bg7 4.Nf3 O-O 5.Be2 d6 6.h3 {Убежище для слона f4 на h2 и защита от …Кh5.}' }
+    ]
+  },
+
+  // ===================== ЗА ЧЁРНЫХ =====================
+  {
+    id: 'najdorf', name: 'Сицилианская, вариант Найдорфа', eco: 'B90–B99', side: 'b', family: 'semi', lvl: 3,
+    desc: 'Самая популярная защита на высшем уровне. Ход 5…a6 — гибкая подготовка к …e5 или …b5. Острые позиции с разносторонними рокировками.',
+    ideas: ['5…a6 отнимает поле b5 у белых фигур и готовит …b5.', 'Ход …e5 захватывает поле d4.', 'Контрудар на ферзевом фланге: …b5–b4 и давление по линии c.'],
+    lines: [
+      { name: 'Английская атака 6.Сe3', pgn: '1.e4 c5 {Сицилианская: несимметричный бой за поле d4.} 2.Nf3 d6 3.d4 cxd4 {Размен фланговой пешки на центральную — стратегический плюс чёрных.} 4.Nxd4 Nf6 {Атака на e4 с темпом.} 5.Nc3 a6 {Вариант Найдорфа.} 6.Be3 {Английская атака.} e5 {Захватываем поле d4, гоним коня.} 7.Nb3 Be6 8.f3 Be7 9.Qd2 O-O 10.O-O-O {Разносторонние рокировки — гонка атак.} Nbd7 11.g4 b5 {Чёрные атакуют первыми.} 12.g5 b4 {Классическая гонка: кто первым вскроет короля.}' },
+      { name: 'Классика 6.Сg5', pgn: '1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Bg5 {Связка с подготовкой f4.} e6 {Убираем пешку из-под возможного Кd5.} 7.f4 Be7 8.Qf3 Qc7 {Ферзь контролирует e5 и линию c.} 9.O-O-O Nbd7 10.g4 b5 {Обоюдоострая позиция.}' },
+      { name: 'Спокойный 6.Сe2', pgn: '1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be2 {Позиционный вариант.} e5 7.Nb3 Be7 8.O-O O-O 9.Be3 Be6 {Чёрные готовят d6-d5 — главный освобождающий удар.}' }
+    ]
+  },
+  {
+    id: 'french', name: 'Французская защита', eco: 'C00–C19', side: 'b', family: 'semi', lvl: 2,
+    desc: 'Надёжная защита: чёрные строят цепь e6–d5 и контратакуют центр белых пешкой c5. Минус — запертый слон c8.',
+    ideas: ['Подрыв c7-c5 бьёт по основанию пешечной цепи белых.', 'Подрыв f7-f6 атакует пешку e5.', 'Ферзь на b6 давит на d4 и b2.'],
+    lines: [
+      { name: 'Вариант продвижения', pgn: '1.e4 e6 {Французская защита.} 2.d4 d5 {Атака на e4.} 3.e5 {Вариант продвижения: белые захватывают пространство.} c5! {Сразу бьём по основанию цепи d4.} 4.c3 Nc6 {Давление на d4.} 5.Nf3 Qb6 {Третья атака на d4 и нападение на b2.} 6.Be2 cxd4 7.cxd4 Nh6 {Конь идёт на f5, усиливая давление на d4.} 8.Nc3 Nf5 9.Na4 Qa5+ 10.Bd2 Bb4 11.Bc3 b5 {Чёрные выигрывают пространство на ферзевом фланге.}' },
+      { name: 'Вариант Винавера', pgn: '1.e4 e6 2.d4 d5 3.Nc3 {Белые защищают e4 конём.} Bb4 {Вариант Винавера: связываем коня.} 4.e5 c5 5.a3 Bxc3+ 6.bxc3 {У белых два слона и сдвоенные пешки.} Ne7 {Конь защищает g7 с e7 и идёт на f5 или c6.} 7.Qg4 {Атака на g7.} Qc7 {Отравленная пешка: чёрные отдают g7 за контригру в центре.} 8.Qxg7 Rg8 9.Qxh7 cxd4 10.Ne2 Nbc6 11.f4 dxc3 {Острейшая позиция: у белых проходная h, у чёрных — центр и опасные пешки.}' },
+      { name: 'Вариант Тарраша', pgn: '1.e4 e6 2.d4 d5 3.Nd2 {Вариант Тарраша: конь не перекрывает пешку c.} c5 4.exd5 Qxd5 {Чёрные централизуют ферзя.} 5.Ngf3 cxd4 6.Bc4 Qd6 7.O-O Nf6 8.Nb3 Nc6 9.Nbxd4 Nxd4 10.Nxd4 a6 {Чёрные готовят …Фc7 и …Сd6. У белых чуть лучше развитие, у чёрных — надёжная позиция.}' }
+    ]
+  },
+  {
+    id: 'carokann', name: 'Защита Каро-Канн', eco: 'B12–B19', side: 'b', family: 'semi', lvl: 1,
+    desc: 'Прочная защита: чёрные поддерживают d5 пешкой c6 и выводят слона c8 на свободу до хода e6.',
+    ideas: ['Слон c8 выходит на f5 или g4 до хода e6.', 'Надёжная пешечная структура без слабостей.', 'Типичный подрыв — c6-c5.'],
+    lines: [
+      { name: 'Классический вариант', pgn: '1.e4 c6 {Каро-Канн: готовим d5.} 2.d4 d5 3.Nc3 {Защита e4 конём — главный ход.} dxe4 4.Nxe4 Bf5 {Слон выходит с темпом.} 5.Ng3 Bg6 6.h4 {Белые угрожают поймать слона ходом h5.} h6 7.Nf3 Nd7 {Не пускаем коня на e5.} 8.h5 Bh7 9.Bd3 Bxd3 10.Qxd3 e6 11.Bd2 Ngf6 12.O-O-O Be7 {Надёжная позиция. Чёрные рокируют в короткую сторону и готовят …c5.}' },
+      { name: 'Вариант продвижения', pgn: '1.e4 c6 2.d4 d5 3.e5 {Продвижение: пешка отнимает f6 у коня.} Bf5 {Слон выходит до e6.} 4.Nf3 e6 5.Be2 c5 {Подрыв центра.} 6.Be3 cxd4 7.Nxd4 Ne7 {Конь идёт на c6.} 8.c4 Nbc6 {Давление на d4 и e5.}' },
+      { name: 'Разменный вариант', pgn: '1.e4 c6 2.d4 d5 3.exd5 {Разменный вариант: белые снимают напряжение в центре.} cxd5 {Симметричная структура.} 4.Bd3 Nc6 5.c3 Nf6 6.Bf4 Bg4 {Активный слон до e6.} 7.Qb3 {Атака на b7.} Na5 {Ферзь под ударом.} 8.Qa4+ Bd7 9.Qc2 e6 10.Nf3 {Равная позиция. План чёрных — …Сd6, разменять слона f4 и атака меньшинства …b5–b4.}' }
+    ]
+  },
+  {
+    id: 'petrov', name: 'Русская партия (защита Петрова)', eco: 'C42–C43', side: 'b', family: 'open', lvl: 2,
+    desc: 'Симметричный ответ 2…Кf6: чёрные контратакуют e4 вместо защиты e5. Одна из самых надёжных защит.',
+    ideas: ['Не спешите брать на e4 — сначала 3…d6!', 'Конь на e4 — опорная фигура чёрных.', 'В главной линии борьба вокруг коня e4 и давления на c4–d5.'],
+    lines: [
+      { name: 'Главная линия 5.d4', pgn: '1.e4 e5 2.Nf3 Nf6 {Русская партия: контратака на e4.} 3.Nxe5 d6! {Сначала прогоняем коня — сразу брать на e4 опасно.} 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Nc6 7.O-O Be7 8.c4 {Белые атакуют опору коня e4.} Nb4 {Нападение на слона d3.} 9.Be2 O-O 10.Nc3 Bf5 11.a3 Nxc3 12.bxc3 Nc6 {Классическая позиция: у чёрных прочная позиция и активные фигуры.}' }
+    ]
+  },
+  {
+    id: 'kid', name: 'Староиндийская защита', eco: 'E60–E99', side: 'b', family: 'closed', lvl: 3,
+    desc: 'Боевая защита: чёрные отдают центр, чтобы затем подорвать его ходами …e5 и …f5. Позиции с атаками на разных флангах.',
+    ideas: ['Слон g7 давит по длинной диагонали.', 'Подрыв …e5, затем …f5 с атакой на короля.', 'Если белые закрывают центр ходом d5, атакуют на противоположных флангах.'],
+    lines: [
+      { name: 'Классика, Мар-дель-Плата', pgn: '1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 {Фианкетто.} 4.e4 d6 5.Nf3 {Классическая система: спокойное развитие.} O-O 6.Be2 e5 {Удар по центру.} 7.O-O Nc6 8.d5 Ne7 {Центр закрыт — каждый атакует на своём фланге.} 9.Ne1 Nd7 {Готовим f7-f5.} 10.Be3 f5 11.f3 f4 12.Bf2 g5 {Пешечный штурм королевского фланга.}' },
+      { name: 'Система Земиша, ловушка с ферзём', pgn: '1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.f3 {Система Земиша: прочный центр.} O-O 6.Be3 e5 7.d5 Nh5 {Готовим …f5 и …Фh4+.} 8.Qd2 Qh4+! 9.g3 Nxg3 10.Qf2 Nxf1 {Чёрные отдают ферзя за три фигуры.} 11.Qxh4 Nxe3 12.Ke2 Nxc4 {За ферзя чёрные получили слона, коня и две пешки — материально примерно равно, а позиция белых разрушена.}' }
+    ]
+  },
+
+  // ===================== ГАМБИТЫ =====================
+  {
+    id: 'kingsgambit', name: 'Королевский гамбит', eco: 'C30–C39', side: 'w', family: 'open', gambit: true, lvl: 2,
+    desc: 'Романтика XIX века: белые жертвуют пешку f, чтобы вскрыть линию f и захватить центр. Острая атакующая игра.',
+    ideas: ['После f4 и exf4 белые строят центр ходом d4.', 'Линия f — главный путь атаки на f7.', 'Король белых тоже ослаблен — нужно играть энергично.'],
+    lines: [
+      { name: 'Гамбит Кизерицкого', pgn: '1.e4 e5 2.f4 {Королевский гамбит: жертвуем пешку за центр и линию f.} exf4 {Принятие гамбита — самый принципиальный ответ.} 3.Nf3 {Не пускаем ферзя на h4 с шахом.} g5 {Чёрные удерживают пешку f4.} 4.h4 {Подрыв пешечной цепи.} g4 5.Ne5 {Гамбит Кизерицкого: конь занимает сильную позицию.} Nf6 {Контратака на e4 — главный ответ.} 6.Bc4 d5 {Закрываем диагональ слона.} 7.exd5 Bd6 8.d4 {Белые укрепляют коня e5 и открывают слона c1 на f4.}' },
+      { name: 'Современная защита 3…d5', pgn: '1.e4 e5 2.f4 exf4 3.Nf3 d5 {Современная защита: чёрные возвращают пешку ради развития.} 4.exd5 Nf6 5.Bb5+ c6 6.dxc6 Nxc6 7.d4 Bd6 8.Qe2+ {Ферзь мешает рокировке.} Be6 9.Ng5 O-O {Чёрные жертвуют качество за атаку. Обоюдоострая позиция.}' },
+      { name: 'Отказанный гамбит 2…Сc5', pgn: '1.e4 e5 2.f4 Bc5 {Отказ: слон мешает белому королю рокировать.} 3.Nf3 d6 4.Nc3 Nf6 5.Bc4 Nc6 6.d3 Bg4 7.h3 Bxf3 8.Qxf3 Nd4 {Конь нападает на ферзя и пешку c2.} 9.Qg3 {Белые атакуют g7. Острая игра.}' }
+    ]
+  },
+  {
+    id: 'evans', name: 'Гамбит Эванса', eco: 'C51–C52', side: 'w', family: 'open', gambit: true, lvl: 2,
+    desc: 'Белые жертвуют пешку b4, чтобы выиграть темп для c3 и d4. Любимое оружие Морфи и Каспарова.',
+    ideas: ['Пешка b4 отвлекает слона c5 и даёт темп для c3 и d4.', 'Белые получают мощный центр и опасную атаку на f7.', 'Слон c1 часто выходит на a3, мешая рокировке чёрных.'],
+    lines: [
+      { name: 'Принятый, 6…exd4', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 {Гамбит Эванса!} Bxb4 {Чёрные принимают жертву.} 5.c3 {С темпом гоним слона и готовим d4.} Ba5 {Главное отступление: слон связывает пешку c3.} 6.d4 {Мощный центр.} exd4 {Чёрные берут ещё одну пешку.} 7.O-O {Белые жертвуют ещё и пешку ради развития.} Nge7 {Конь готовит …d5.} 8.cxd4 d5! {Чёрные возвращают материал, чтобы закрыть слона c4.} 9.exd5 Nxd5 {Далее 10.Сa3 — слон мешает чёрным рокировать.}' },
+      { name: 'Защита Ласкера 6…d6', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Ba5 6.d4 d6 {Защита Ласкера: удерживаем пешку e5.} 7.O-O Bb6 8.dxe5 dxe5 9.Qxd8+ Nxd8 10.Nxe5 Be6 {Эндшпиль, где у белых чуть больше активности.}' }
+    ]
+  },
+  {
+    id: 'danish', name: 'Датский гамбит', eco: 'C21', side: 'w', family: 'open', gambit: true, lvl: 1,
+    desc: 'Белые жертвуют две пешки ради двух дальнобойных слонов. Отличный тренажёр атакующей игры.',
+    ideas: ['Слоны c4 и b2 бьют по f7 и g7.', 'Белые обгоняют в развитии на 3–4 темпа.', 'Лучший ответ чёрных — вернуть материал ходом …d5.'],
+    lines: [
+      { name: 'Защита Шлехтера 5…d5', pgn: '1.e4 e5 2.d4 exd4 3.c3 {Датский гамбит.} dxc3 {Принятие: чёрные берут вторую пешку.} 4.Bc4 {Вторая жертва!} cxb2 5.Bxb2 {Два слона нацелены на королевский фланг чёрных.} d5! {Лучший ответ: вернуть материал и освободиться.} 6.Bxd5 Nf6 7.Bxf7+ Kxf7 8.Qxd8 Bb4+ {Промежуточный шах.} 9.Qd2 Bxd2+ 10.Nxd2 c5 {Эндшпиль с примерно равными шансами — атака белых погашена.}' },
+      { name: 'Отказ 3…d5', pgn: '1.e4 e5 2.d4 exd4 3.c3 d5 {Чёрные отказываются от второй пешки.} 4.exd5 Qxd5 5.cxd4 Nc6 6.Nf3 Bg4 7.Be2 {Изолированная пешка d4 у белых, но активные фигуры.}' }
+    ]
+  },
+  {
+    id: 'morra', name: 'Гамбит Смит-Морра', eco: 'B21', side: 'w', family: 'semi', gambit: true, lvl: 2,
+    desc: 'Агрессивный ответ на сицилианскую защиту: пешка за быстрое развитие и давление по линиям c и d.',
+    ideas: ['Пешку c3 жертвуют за темпы развития.', 'Ладьи быстро занимают линии c и d.', 'Белые давят на отсталую пешку d6.'],
+    lines: [
+      { name: 'Главная линия', pgn: '1.e4 c5 2.d4 {Гамбит Смит-Морра.} cxd4 3.c3 dxc3 {Принятие гамбита.} 4.Nxc3 {За пешку — опережение в развитии.} Nc6 5.Nf3 d6 6.Bc4 e6 {Закрываем диагональ слона c4.} 7.O-O Nf6 8.Qe2 {Готовим Лd1 и давление на d6.} Be7 9.Rd1 e5 10.h3 O-O 11.Be3 {Белые выстроили фигуры для давления, у чёрных лишняя пешка и прочная позиция.}' }
+    ]
+  },
+  {
+    id: 'bdg', name: 'Гамбит Блэкмара-Димера', eco: 'D00', side: 'w', family: 'closed', gambit: true, lvl: 2,
+    desc: 'Белые жертвуют пешку e4 ради открытой линии f и стремительной атаки. Популярен у любителей.',
+    ideas: ['Пешка f3 вскрывает линию f для ладьи.', 'После рокировки белые давят на f7.', 'Слоны d3 и g5 нацелены на королевский фланг.'],
+    lines: [
+      { name: 'Защита Тейхмана', pgn: '1.d4 d5 2.e4 {Гамбит Блэкмара-Димера.} dxe4 3.Nc3 Nf6 4.f3 {Предлагаем вторую пешку.} exf3 {Принятие гамбита.} 5.Nxf3 {Белые обогнали в развитии.} Bg4 {Защита Тейхмана: размен опасного коня.} 6.h3 Bxf3 7.Qxf3 c6 8.Be3 e6 9.Bd3 Nbd7 10.O-O-O {У белых два слона и линия f, у чёрных — лишняя пешка.}' }
+    ]
+  },
+  {
+    id: 'budapest', name: 'Будапештский гамбит', eco: 'A51–A52', side: 'b', family: 'closed', gambit: true, lvl: 2,
+    desc: 'Неожиданный ответ на 1.d4: чёрные жертвуют пешку e5 и почти всегда отыгрывают её с активной игрой.',
+    ideas: ['Конь g4 нападает на пешку e5.', 'Связка …Сb4+ мешает белым защищать e5.', 'Ладья выходит на a6–h6 — типичный приём будапештского гамбита.'],
+    lines: [
+      { name: 'Вариант Рубинштейна 4.Сf4', pgn: '1.d4 Nf6 2.c4 e5 {Будапештский гамбит!} 3.dxe5 {Белые принимают жертву.} Ng4 {Сразу нападаем на e5.} 4.Bf4 {Белые защищают пешку.} Nc6 5.Nf3 Bb4+ {Связка коня.} 6.Nbd2 {Главный ход: конь d2 не даёт испортить пешки.} Qe7 {Третья атака на e5.} 7.e3 {Белые спокойно развиваются и отдают пешку e5.} Ngxe5 8.Nxe5 Nxe5 {Материал восстановлен.} 9.Be2 O-O 10.O-O Bxd2 11.Qxd2 d6 {Равная позиция с активными фигурами у чёрных.}' },
+      { name: 'Вариант 4.Кf3', pgn: '1.d4 Nf6 2.c4 e5 3.dxe5 Ng4 4.Nf3 {Белые развиваются и защищают e5 конём.} Bc5 {Давление на f2.} 5.e3 Nc6 6.Be2 Ngxe5 7.Nxe5 Nxe5 8.O-O O-O 9.Nc3 Re8 {Чёрные вернули пешку и активно расположились.}' }
+    ]
+  },
+  {
+    id: 'albin', name: 'Контргамбит Альбина', eco: 'D08–D09', side: 'b', family: 'closed', gambit: true, lvl: 2,
+    desc: 'Острый ответ на ферзевый гамбит: пешка e5 в жертву, зато клин d4 стесняет белых. Здесь есть знаменитая ловушка Ласкера.',
+    ideas: ['Пешка d4 — клин в лагере белых.', 'Длинная рокировка и атака …h5–h4.', 'Ловушка Ласкера: превращение в коня с шахом.'],
+    lines: [
+      { name: 'Главная линия 4.Кf3', pgn: '1.d4 d5 2.c4 e5 {Контргамбит Альбина.} 3.dxe5 {Принятие.} d4 {Клин d4 мешает развитию белых.} 4.Nf3 {Лучший ход белых.} Nc6 5.g3 Be6 6.Nbd2 Qd7 7.Bg2 O-O-O {Длинная рокировка.} 8.O-O {Типичный план чёрных — …Сh3, …h5–h4 и атака на короля.}' },
+      { name: 'Ловушка Ласкера', pgn: '1.d4 d5 2.c4 e5 3.dxe5 d4 4.e3? {Ошибка — белые открывают дорогу пешке d4.} Bb4+ 5.Bd2 dxe3! 6.Bxb4?? {Решающая ошибка.} exf2+ 7.Ke2 {Король не может взять f2: тогда ферзь d1 погибнет.} fxg1=N+! {Превращение в коня с шахом!} 8.Ke1 Qh4+ 9.Kd2 Nc6 {Белый король в центре, атака неотразима.}' }
+    ]
+  },
+  {
+    id: 'benko', name: 'Гамбит Волжский (Бенко)', eco: 'A57–A59', side: 'b', family: 'closed', gambit: true, lvl: 3,
+    desc: 'Позиционная жертва пешки: чёрные получают долговременное давление по линиям a и b. Компенсация сохраняется вплоть до эндшпиля.',
+    ideas: ['Открытые линии a и b для ладей.', 'Слон g7 давит по диагонали a1–h8.', 'Белым трудно реализовать лишнюю пешку на ферзевом фланге.'],
+    lines: [
+      { name: 'Главная линия', pgn: '1.d4 Nf6 2.c4 c5 3.d5 b5 {Волжский гамбит!} 4.cxb5 {Принятие жертвы.} a6 5.bxa6 {Белые берут и вторую пешку — главный вариант.} Bxa6 {Слон на a6 мешает белым рокировать.} 6.Nc3 d6 7.e4 {Белые занимают центр, но теряют рокировку.} Bxf1 8.Kxf1 {Белые потеряли право рокировки.} g6 9.g3 Bg7 10.Kg2 O-O 11.Nf3 Nbd7 {Далее …Фa5, …Лfb8 — давление на ферзевом фланге.}' }
+    ]
+  },
+  {
+    id: 'latvian', name: 'Латышский гамбит', eco: 'C40', side: 'b', family: 'open', gambit: true, lvl: 3,
+    desc: 'Самый рискованный гамбит за чёрных: …f5 уже на втором ходу. Теоретически сомнителен, но опасен для неподготовленного соперника.',
+    ideas: ['Ход …f5 вскрывает линию f.', 'Ферзь f6–g6 создаёт угрозы королевскому флангу.', 'Играть стоит только с точным знанием теории.'],
+    lines: [
+      { name: 'Главная линия 3.Кxe5', pgn: '1.e4 e5 2.Nf3 f5 {Латышский гамбит.} 3.Nxe5 {Самый популярный ответ.} Qf6 {Атакуем коня.} 4.d4 d6 5.Nc4 fxe4 6.Nc3 Qg6 {Ферзь атакует g2. Острая позиция, где каждый ход важен.}' }
+    ]
+  },
+  {
+    id: 'schliemann', name: 'Гамбит Шлимана (Яниша)', eco: 'C63', side: 'b', family: 'open', gambit: true, lvl: 3,
+    desc: 'Агрессивный ответ на испанскую партию: …f5 на третьем ходу. Острые варианты, где белым нужно знать точные ходы.',
+    ideas: ['…f5 сразу атакует центр белых.', 'Чёрные жертвуют материал ради инициативы.', 'Ферзь g5 создаёт двойные угрозы.'],
+    lines: [
+      { name: 'Главная линия 4.Кc3', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 f5 {Гамбит Шлимана.} 4.Nc3 {Главный ответ: конь защищает e4 и готовит Кxe4.} fxe4 5.Nxe4 d5 6.Nxe5 dxe4 7.Nxc6 Qg5 {Двойная атака на g2 и слона b5.} 8.Qe2 Nf6 9.f4 Qxf4 10.Ne5+ c6 11.d4 Qh4+ 12.g3 Qh3 {Острая позиция с обоюдными шансами.}' }
+    ]
+  },
+
+  // ===================== ЛОВУШКИ =====================
+  {
+    id: 'legal', name: 'Мат Легаля', eco: 'C41', side: 'w', family: 'open', trap: true, lvl: 1,
+    desc: 'Знаменитая ловушка: белые отдают ферзя и ставят мат лёгкими фигурами.',
+    ideas: ['Связка коня f3 мнимая — его можно двигать.', 'Если чёрные берут ферзя, следует мат тремя фигурами.'],
+    lines: [
+      { name: 'Классическая ловушка', pgn: '1.e4 e5 2.Nf3 d6 3.Bc4 Bg4 {Связка коня f3.} 4.Nc3 g6? {Ошибка: чёрные не следят за угрозами.} 5.Nxe5! {Конь уходит из-под «связки».} Bxd1?? {Жадность наказана.} 6.Bxf7+ Ke7 7.Nd5# {Мат Легаля!}' }
+    ]
+  },
+  {
+    id: 'petrovtrap', name: 'Ловушка в русской партии', eco: 'C42', side: 'w', family: 'open', trap: true, lvl: 1,
+    desc: 'Типичная ошибка новичков в защите Петрова: …Кxe4 сразу ведёт к потере ферзя.',
+    ideas: ['Вскрытый шах по линии e.', 'Конь с шахом нападает на ферзя d8.'],
+    lines: [
+      { name: '3…Кxe4? 4.Фe2', pgn: '1.e4 e5 2.Nf3 Nf6 3.Nxe5 Nxe4? {Симметрия здесь ошибочна.} 4.Qe2! {Связка по линии e.} Nf6?? {Естественный ход, но проигрывающий.} 5.Nc6+! {Вскрытый шах и нападение на ферзя d8. Белые выигрывают ферзя.}' }
+    ]
+  },
+  {
+    id: 'blackburne', name: 'Ловушка Блэкберна–Шиллинга', eco: 'C50', side: 'b', family: 'open', trap: true, lvl: 1,
+    desc: 'Чёрные отдают пешку e5 и ставят мат, если белые жадничают.',
+    ideas: ['Конь d4 оставляет пешку e5 «незащищённой».', 'Ферзь g5 нападает на коня e5 и пешку g2.'],
+    lines: [
+      { name: 'Мат конём на f3', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Nd4!? {Приманка.} 4.Nxe5? Qg5! {Двойной удар: g2 и e5.} 5.Nxf7?? {Белые жадничают.} Qxg2 6.Rf1 Qxe4+ 7.Be2 Nf3# {Спёртый мат!}' }
+    ]
+  },
+  {
+    id: 'englund', name: 'Ловушка в гамбите Энглунда', eco: 'A40', side: 'b', family: 'closed', trap: true, lvl: 1,
+    desc: 'После 1.d4 e5 чёрные ставят ловушку с матом на c1, если белые невнимательны.',
+    ideas: ['Шах ферзём с b4 и взятие пешки b2.', 'Связка слоном b4 и мат на c1.'],
+    lines: [
+      { name: 'Мат на c1', pgn: '1.d4 e5 {Гамбит Энглунда.} 2.dxe5 Nc6 3.Nf3 Qe7 {Нападаем на e5.} 4.Bf4? Qb4+ {Двойной удар: шах и нападение на b2.} 5.Bd2 Qxb2 6.Bc3? Bb4! {Связка слона.} 7.Qd2 Bxc3 8.Qxc3 Qc1# {Мат!}' }
+    ]
+  },
+  {
+    id: 'siberian', name: 'Сибирская ловушка', eco: 'B21', side: 'b', family: 'semi', trap: true, lvl: 2,
+    desc: 'Красивая ловушка против гамбита Смит-Морра: мат на h2 или выигрыш ферзя.',
+    ideas: ['Ферзь c7 смотрит на h2.', 'Конь d4 нападает на ферзя e2, одновременно освобождая диагональ.'],
+    lines: [
+      { name: 'Мат на h2', pgn: '1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3 Nc6 5.Nf3 e6 6.Bc4 Qc7 {Ферзь нацелен на h2.} 7.O-O Nf6 8.Qe2 Ng4 {Угроза Фh2#.} 9.h3? Nd4! {Сибирская ловушка: конь атакует ферзя.} 10.Nxd4?? Qh2# {Мат!}' }
+    ]
+  },
+  {
+    id: 'noah', name: 'Ловушка «Ноев ковчег»', eco: 'C77', side: 'b', family: 'open', trap: true, lvl: 2,
+    desc: 'Старинная ловушка в испанской партии: белый слон b3 оказывается пойманным пешками.',
+    ideas: ['Пешки a6, b5, c5 и c4 образуют «ковчег» вокруг слона.', 'Ход …c5 гонит ферзя, …c4 запирает слона.'],
+    lines: [
+      { name: 'Пойманный слон', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 d6 {Отложенная защита Стейница.} 5.d4 b5 6.Bb3 Nxd4 7.Nxd4 exd4 8.Qxd4?? {Ошибка!} c5 {Гоним ферзя.} 9.Qd5 Be6 10.Qc6+ Bd7 11.Qd5 c4 {Слон b3 пойман — «Ноев ковчег».}' }
+    ]
+  },
+  {
+    id: 'scholar', name: 'Защита от детского мата', eco: 'C20', side: 'b', family: 'open', trap: true, lvl: 1,
+    desc: 'Как правильно отражать ранние атаки ферзя на f7 и при этом развивать фигуры.',
+    ideas: ['Защищайте f7, одновременно развиваясь.', 'Выгоняйте ферзя с темпом.', 'Не путайте 3…g6 с 3…Кf6?? — после него следует мат.'],
+    lines: [
+      { name: 'Против 2.Фh5', pgn: '1.e4 e5 2.Qh5 {Ранний выход ферзя: угроза e5 и мата на f7.} Nc6 {Защищаем e5.} 3.Bc4 {Угроза Фxf7#.} g6! {Выгоняем ферзя. Нельзя 3…Кf6?? 4.Фxf7#.} 4.Qf3 {Снова угроза на f7.} Nf6 {Защищаем f7 и развиваем коня.} 5.Ne2 Bg7 {Чёрные спокойно развились и опередили белых.}' },
+      { name: 'Против 2.Сc4 и 3.Фf3', pgn: '1.e4 e5 2.Bc4 {Слон сразу нацелен на f7.} Nc6 3.Qf3 {Угроза мата на f7.} Nf6 {Самая простая защита с развитием.} 4.Ne2 Bc5 {Чёрные активно развиваются, ферзь f3 стоит неудачно.}' }
+    ]
+  }
+];
+
+
+// ===== Дополнительные варианты: как соперник может отклониться и как на это реагировать =====
+var EXTRA_LINES = {
+  kingsgambit: [
+    { name: 'Кизерицкий: защита 5…d6', pgn: '1.e4 e5 2.f4 exf4 3.Nf3 g5 4.h4 g4 5.Ne5 d6 {Чёрные гонят коня, не защищая пешку g4.} 6.Nxg4 {Правильная реакция: конь уходит, забирая пешку, — материал восстановлен.} Nf6 {Чёрные предлагают размен единственного активного коня.} 7.Nxf6+ Qxf6 8.Nc3 {Развитие с идеей Кd5 — удар по ферзю и пункту c7. Белые опережают в развитии.}' },
+    { name: 'Защита Шаллопа 3…Кf6', pgn: '1.e4 e5 2.f4 exf4 3.Nf3 Nf6 {Защита Шаллопа: контратака на e4 вместо удержания пешки.} 4.e5! {Лучший ответ: пешка гонит коня на край доски.} Nh5 {Конь защищает f4, но стоит на краю.} 5.d4 {Захватываем центр. Далее Сe2, рокировка и отыгрыш пешки f4.}' },
+    { name: 'Защита Фишера 3…d6', pgn: '1.e4 e5 2.f4 exf4 3.Nf3 d6 {Защита Фишера: сначала отнимаем у коня поле e5, потом …g5.} 4.d4 {Строим центр.} g5 5.h4 {Подрыв пешечной цепи — как в гамбите Кизерицкого.} g4 6.Ng1! {Парадоксально, но точно: на e5 коню нельзя из-за пешки d6. Белые отыграют f4 и получат мощный центр.}' },
+    { name: 'Защита Каннингема 3…Сe7', pgn: '1.e4 e5 2.f4 exf4 3.Nf3 Be7 {Защита Каннингема: чёрные готовят шах с h4.} 4.Bc4 {Не боимся шаха — развиваемся с давлением на f7.} Bh4+ 5.Kf1 {Король отходит. Рокировки нет, но слон h4 стоит неудачно, а белые построят центр ходом d4.}' },
+    { name: 'Контргамбит Фалькбеера 2…d5', pgn: '1.e4 e5 2.f4 d5 {Контргамбит Фалькбеера: чёрные отвечают жертвой на жертву.} 3.exd5 {Забираем пешку.} e4 {Клин e4 мешает развитию коня g1.} 4.d3! {Сразу подрываем клин.} Nf6 5.dxe4 Nxe4 6.Nf3 Bc5 {Угроза на f2.} 7.Qe2 {Связка коня e4 по открытой линии e. У белых лишняя пешка d5.}' },
+    { name: 'Отказ 2…Кf6', pgn: '1.e4 e5 2.f4 Nf6 {Чёрные контратакуют e4, игнорируя жертву.} 3.fxe5 {Берём пешку — конь будет вынужден отступить.} Nxe4 4.Nf3 {Развитие. Далее d3 прогонит коня из центра, а пешка e5 стеснит чёрных.}' }
+  ],
+  evans: [
+    { name: 'Нормальная позиция 5…Сc5', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Bc5 {Отступление на c5 — второй главный ответ.} 6.d4 {Центральный удар с темпом по слону.} exd4 7.O-O {Не спешим брать — сначала развитие.} d6 8.cxd4 Bb6 {Нормальная позиция гамбита Эванса.} 9.Nc3 {Фигуры готовы к атаке: возможны e5, Сg5 или Кd5. Мощный центр — компенсация за пешку.}' },
+    { name: 'Отступление 5…Сe7', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Be7 {Самое надёжное отступление: слон прикрывает королевский фланг.} 6.d4 Na5 {Чёрные хотят разменять опасного слона c4.} 7.Be2 {Сохраняем слона.} exd4 8.Qxd4 {Ферзь в центре бьёт по g7 и a7. На 8…Кf6 следует 9.e5 Кc6 10.Фh4 с инициативой.}' },
+    { name: 'Компрометированная защита 7…dxc3', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bxb4 5.c3 Ba5 6.d4 exd4 7.O-O dxc3 {Чёрные берут третью пешку — очень рискованно.} 8.Qb3 {Двойной удар по f7.} Qf6 9.e5 {Темп — ферзь должен уходить.} Qg6 10.Nxc3 {Развитие с темпом.} Nge7 11.Ba3 {Слон не даёт чёрным рокировать. За три пешки у белых сокрушительное развитие.}' },
+    { name: 'Отказ 4…Сb6', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 Bb6 {Чёрные отказываются от жертвы.} 5.a4 {Используем выдвинутую пешку b4: угроза a5 с ловлей слона.} a6 {Убежище для слона.} 6.Nc3 Nf6 7.Nd5 {Конь занимает сильнейший пункт и бьёт по слону b6. Белые получили пространство на ферзевом фланге даром.}' }
+  ],
+  danish: [
+    { name: 'Шах 5…Сb4+', pgn: '1.e4 e5 2.d4 exd4 3.c3 dxc3 4.Bc4 cxb2 5.Bxb2 Bb4+ {Шах с развитием.} 6.Nc3 {Закрываемся конём, сохраняя атакующих слонов.} Nf6 7.Ne2 {Конь защищает c3 и готовит рокировку. Пешку e4 можно отдать — после рокировки атака по линиям усилится.}' }
+  ],
+  morra: [
+    { name: 'Отказ 3…d3', pgn: '1.e4 c5 2.d4 cxd4 3.c3 d3 {Чёрные возвращают пешку, чтобы не открывать линии.} 4.Bxd3 {Забираем с развитием.} Nc6 5.c4 {Структура «Мароци»: белые прочно контролируют d5 и имеют перевес в пространстве.}' },
+    { name: 'Уход в Алапина 3…Кf6', pgn: '1.e4 c5 2.d4 cxd4 3.c3 Nf6 {Чёрные контратакуют e4 и переводят игру в вариант Алапина.} 4.e5 Nd5 5.cxd4 {Пешка возвращена, у белых пешечный центр.} d6 6.Nf3 Nc6 7.Bc4 Nb6 8.Bb5 {Связка коня c6 сохраняет давление на центр.}' },
+    { name: 'Отказ 3…d5', pgn: '1.e4 c5 2.d4 cxd4 3.c3 d5 {Удар по центру вместо взятия.} 4.exd5 Qxd5 5.cxd4 {Пешка отыграна. Изолированная пешка d4 даст белым простор для фигур.} Nc6 6.Nf3 Bg4 7.Be2 e6 8.Nc3 {Темп по ферзю, белые быстро завершают развитие.}' },
+    { name: 'Ловушка 6…Кf6?', pgn: '1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3 Nc6 5.Nf3 d6 6.Bc4 Nf6? {Естественно, но неточно — чёрные забыли про пункт f7.} 7.e5! {Удар в центре.} Nxe5? {Чёрные берут пешку и попадают в ловушку.} 8.Nxe5 dxe5 9.Bxf7+! Kxf7 10.Qxd8 {Слон отвлёк короля — белые выиграли ферзя.}' }
+  ],
+  bdg: [
+    { name: 'Защита Эйве 5…e6', pgn: '1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 exf3 5.Nxf3 e6 {Защита Эйве: прочно, без лишних выпадов.} 6.Bg5 {Связка коня f6.} Be7 7.Bd3 {Фигуры нацелены на королевский фланг. Далее Фe2, длинная рокировка и атака.}' },
+    { name: 'Защита Боголюбова 5…g6', pgn: '1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 exf3 5.Nxf3 g6 {Фианкетто: слон g7 будет давить на d4.} 6.Bc4 Bg7 7.O-O O-O 8.Qe1! {Типичный маневр: ферзь идёт на h4, затем Сh6 — атака на короля.}' },
+    { name: 'Защита Гундерама 5…Сf5', pgn: '1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 exf3 5.Nxf3 Bf5 {Слон выходит раньше пешки e6.} 6.Ne5 {Конь в центре, готовим g4.} e6 7.g4 {Гоним слона и захватываем пространство на королевском фланге.}' },
+    { name: 'Отказ 4…e3', pgn: '1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 e3 {Чёрные возвращают пешку, чтобы помешать развитию.} 5.Bxe3 {Пешка взята с развитием слона. У белых центр и свободная игра.}' }
+  ],
+  budapest: [
+    { name: 'Ловушка после 7.a3?', pgn: '1.d4 Nf6 2.c4 e5 3.dxe5 Ng4 4.Bf4 Nc6 5.Nf3 Bb4+ 6.Nbd2 Qe7 7.a3? {Белые атакуют слона, забыв о линии e.} Ngxe5! {Слона можно не защищать.} 8.axb4?? Nd3# {Спёртый мат: пешка e2 связана ферзём e7.}' },
+    { name: 'Вариант 6.Кc3', pgn: '1.d4 Nf6 2.c4 e5 3.dxe5 Ng4 4.Bf4 Nc6 5.Nf3 Bb4+ 6.Nc3 {Белые защищаются конём c3 — теперь возможен размен с порчей пешек.} Qe7 7.Qd5 {Ферзь защищает e5.} f6! {Подрыв: жертвуем ещё пешку ради инициативы.} 8.exf6 Nxf6 9.Qd3 d5 {Чёрные опережают в развитии и владеют центром.}' },
+    { name: 'Вариант Алехина 4.e4', pgn: '1.d4 Nf6 2.c4 e5 3.dxe5 Ng4 4.e4 {Белые отдают пешку обратно ради центра.} Nxe5 5.f4 {Гоним коня.} Nec6 {Конь отступает на c6 и следит за полем d4.} 6.Be3 Bb4+ 7.Nc3 Qe7 {Давление на e4; далее …f5 — подрыв белого центра.}' },
+    { name: 'Отказ 3.d5', pgn: '1.d4 Nf6 2.c4 e5 3.d5 {Белые не берут пешку и закрывают центр.} Bc5 {Слон на активной диагонали. Далее …d6, …a5 и …Кa6–c5 — удобная игра, как в староиндийской.}' }
+  ],
+  albin: [
+    { name: 'Отказ 3.e3', pgn: '1.d4 d5 2.c4 e5 3.e3 {Белые отказываются от пешки.} exd4 4.exd4 Nf6 {Спокойно развиваемся — как против изолированной пешки.} 5.Nf3 Be7 6.Nc3 O-O {Чёрные удобно развились; позже …dxc4 оставит белым изолированную пешку.}' },
+    { name: 'Размен 3.cxd5', pgn: '1.d4 d5 2.c4 e5 3.cxd5 {Белые сразу размениваются в центре.} Qxd5 {Ферзь централизован и бьёт по d4.} 4.Nf3 exd4 5.Nc3 Qa5 {Отходим с темпом и связываем коня c3.} 6.Nxd4 Nf6 {Равная позиция с удобной игрой у чёрных.}' }
+  ],
+  benko: [
+    { name: 'Возврат пешки 5.b6', pgn: '1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5 a6 5.b6 {Белые возвращают пешку, чтобы не открывать линии a и b.} Qxb6 {Пешку взяли, ферзь активен.} 6.Nc3 d6 7.e4 g6 {Фианкетто, как в главной линии: …Сg7, …O-O и давление по диагонали.}' },
+    { name: 'Отказ 5.e3', pgn: '1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5 a6 5.e3 {Белые не берут на a6 и укрепляют центр.} g6 {Не спешим брать на b5.} 6.Nc3 d6 7.a4 Bg7 {У чёрных активная игра; позже …O-O и …axb5 с давлением.}' },
+    { name: 'Фианкетто 8.g3', pgn: '1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5 a6 5.bxa6 Bxa6 6.Nc3 d6 7.Nf3 {Белые сохраняют право рокировки.} g6 8.g3 Bg7 9.Bg2 Nbd7 10.O-O O-O {План чёрных тот же: …Фa5 или …Фb6, …Лfb8 и давление на ферзевом фланге.}' },
+    { name: 'Отказ 4.Кf3', pgn: '1.d4 Nf6 2.c4 c5 3.d5 b5 4.Nf3 {Белые не берут пешку.} g6 5.cxb5 a6 {Всё равно жертвуем — белые потратили темп на Кf3.} 6.bxa6 Bxa6 {Знакомая структура: давление по открытым линиям a и b.}' }
+  ],
+  latvian: [
+    { name: 'Взятие 3.exf5', pgn: '1.e4 e5 2.Nf3 f5 3.exf5 {Белые берут пешку.} e4 {Гоним коня.} 4.Ne5 Nf6 5.Be2 d6 6.Bh5+ Ke7 {Король уходит. После 7.Кf7 Фe8 8.Кxh8 Фxh5 конь h8 оказывается в ловушке.}' },
+    { name: 'Удар 3.d4', pgn: '1.e4 e5 2.Nf3 f5 3.d4 {Удар в центре.} fxe4 4.Nxe5 Nf6 5.Bg5 d6 6.Nc4 Be7 {Чёрные развиваются и готовят рокировку. Позиция сложная, но играбельная.}' }
+  ],
+  schliemann: [
+    { name: 'Спокойный 4.d3', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 f5 4.d3 {Белые просто защищают e4.} fxe4 5.dxe4 Nf6 6.O-O d6 {Открытая линия f и надёжный центр. Далее …Сe7 и рокировка.}' },
+    { name: 'Удар 4.d4', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 f5 4.d4 {Удар в центре.} fxe4 5.Nxe5 Nxe5 6.dxe5 c6 {Нападаем на слона.} 7.Nc3 cxb5 8.Nxe4 d5 9.exd6 Nf6 {У чёрных лишняя фигура за две пешки — главное быстро развиться и спрятать короля.}' },
+    { name: 'Взятие 4.exf5', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 f5 4.exf5 {Белые берут пешку.} e4 {Гоним коня.} 5.Qe2 Qe7 {Защищаем e4. Пешку f5 чёрные вернут и получат хорошую игру.}' }
+  ],
+  qgd: [
+    { name: 'Защита Тарраша 3…c5', pgn: '1.d4 d5 2.c4 e6 3.Nc3 c5 {Защита Тарраша: изолированная пешка ради активных фигур.} 4.cxd5 exd5 5.Nf3 Nc6 6.g3 {Фианкетто давит на пешку d5.} Nf6 7.Bg2 Be7 8.O-O O-O {Белые играют против пешки d5, чёрные — на активность фигур.}' },
+    { name: 'Защита Чигорина 2…Кc6', pgn: '1.d4 d5 2.c4 Nc6 {Защита Чигорина: давление фигурами вместо пешек.} 3.Nf3 Bg4 4.cxd5 Bxf3 5.gxf3 Qxd5 6.e3 e5 7.Nc3 Bb4 8.Bd2 Bxc3 9.bxc3 {У белых два слона и сильный центр, у чёрных — лучшая структура.}' },
+    { name: 'Контргамбит Альбина 2…e5', pgn: '1.d4 d5 2.c4 e5 {Контргамбит Альбина.} 3.dxe5 d4 4.Nf3 {Важно: 4.e3? проигрывает из-за ловушки Ласкера.} Nc6 5.g3 {Слон g2 давит по диагонали, белые готовятся вернуть пешку с выгодой.} Be6 6.Nbd2 Qd7 7.Bg2 O-O-O 8.O-O {Белые лучше: план — b4–b5 и атака на ферзевом фланге.}' },
+    { name: 'Полуславянская 4…e6', pgn: '1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 e6 {Полуславянская защита.} 5.Bg5 h6 6.Bxf6 Qxf6 7.e3 Nd7 8.Bd3 dxc4 9.Bxc4 g6 10.O-O Bg7 {Московский вариант: у чёрных два слона, у белых — центр и опережение в развитии.}' }
+  ],
+  italian: [
+    { name: 'Венгерская защита 3…Сe7', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bc4 Be7 {Венгерская защита: пассивно, но надёжно.} 4.d4 {Сразу вскрываем центр.} exd4 5.Nxd4 d6 6.O-O Nf6 7.Nc3 O-O {Перевес в пространстве у белых — далее f4 или Сe3 и Фd2.}' }
+  ],
+  ruy: [
+    { name: 'Защита Стейница 3…d6', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 d6 {Старая защита Стейница.} 4.d4 {Давление на e5.} Bd7 5.Nc3 Nf6 6.O-O Be7 7.Re1 exd4 8.Nxd4 O-O {У белых перевес в пространстве.}' },
+    { name: 'Защита Бёрда 3…Кd4', pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 Nd4 {Защита Бёрда: размен коней.} 4.Nxd4 exd4 5.O-O {Далее d3 и f4 — у белых небольшой перевес.}' }
+  ]
+};
+Object.keys(EXTRA_LINES).forEach(function (id) {
+  for (var i = 0; i < OPENINGS.length; i++) if (OPENINGS[i].id === id) OPENINGS[i].lines = OPENINGS[i].lines.concat(EXTRA_LINES[id]);
+});
+
+(function () {
+  'use strict';
+  var E = ChessEngineModule();
+  var view = document.getElementById('view');
+  var tabbar = document.getElementById('tabbar');
+
+  /* ================= storage ================= */
+  var store = {
+    get: function (k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) { } }
+  };
+  var DEFAULTS = { board: 'wood', theme: 'auto', sound: true, coords: true, legal: true, color: 'w', level: 2, start: '' };
+  var settings = Object.assign({}, DEFAULTS, store.get('gt-settings', {}));
+  var progress = store.get('gt-progress', {});
+  var stats = Object.assign({ win: 0, loss: 0, draw: 0 }, store.get('gt-stats', {}));
+  function saveSettings() { store.set('gt-settings', settings); applyTheme(); }
+  function applyTheme() {
+    var r = document.documentElement;
+    if (settings.theme === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', settings.theme);
+    r.setAttribute('data-board', settings.board);
+  }
+  applyTheme();
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function plural(n, f) { var a = Math.abs(n) % 100, b = a % 10; if (a > 10 && a < 20) return f[2]; if (b > 1 && b < 5) return f[1]; if (b === 1) return f[0]; return f[2]; }
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  /* ================= icons ================= */
+  function ic(d) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; }
+  var ICON = {
+    back: ic('<path d="M15 5l-7 7 7 7"/>'),
+    sliders: ic('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>'),
+    flip: ic('<path d="M7 4v14M7 18l-3-3M7 18l3-3M17 20V6M17 6l-3 3M17 6l3 3"/>'),
+    first: ic('<path d="M6 5v14M18 6l-7 6 7 6"/>'),
+    prev: ic('<path d="M15 6l-6 6 6 6"/>'),
+    next: ic('<path d="M9 6l6 6-6 6"/>'),
+    last: ic('<path d="M18 5v14M6 6l7 6-7 6"/>'),
+    bulb: ic('<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>'),
+    undo: ic('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),
+    restart: ic('<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4v5h5"/>'),
+    flag: ic('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),
+    eye: ic('<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+    book: ic('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/>'),
+    target: ic('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>'),
+    pawn: ic('<circle cx="12" cy="6.5" r="3"/><path d="M9.5 10.5h5M10.2 11l-1.4 6.5h6.4L13.8 11M6.5 21h11M8 17.5h8"/>'),
+    search: ic('<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'),
+    play: ic('<path d="M7 5l12 7-12 7z"/>'),
+    shuffle: ic('<path d="M4 7h3.5c4 0 5 10 9 10H20M4 17h3.5c1.6 0 2.7-1.6 3.6-3.6M13 10.6C13.9 8.6 15 7 16.5 7H20M17.5 4.5L20 7l-2.5 2.5M17.5 14.5L20 17l-2.5 2.5"/>'),
+    repeat: ic('<path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18.5 3v4h-4M5.5 21v-4h4"/>')
+  };
+  function pieceUse(code) { return '<use href="#p-' + code + '"/>'; }
+  function pieceCode(p) { return ((p >> 3) ? 'b' : 'w') + ' pnbrqk'[p & 7]; }
+  function pieceSvg(code, cls) { return '<svg class="' + (cls || 'pc') + '" viewBox="0 0 100 100" aria-hidden="true">' + pieceUse(code) + '</svg>'; }
+
+  (function buildSprite() {
+    var s = '<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs>';
+    'wb'.split('').forEach(function (c) { 'pnbrqk'.split('').forEach(function (t) { s += '<symbol id="p-' + c + t + '" viewBox="0 0 100 100">' + pieceSymbol(c, t) + '</symbol>'; }); });
+    document.body.insertAdjacentHTML('afterbegin', s + '</defs></svg>');
+  })();
+
+  /* ================= notation ================= */
+  var RU = { N: 'К', B: 'С', R: 'Л', Q: 'Ф', K: 'Кр' };
+  function ru(san) {
+    if (!san) return '';
+    if (san.indexOf('O-O') === 0) return san.replace(/O/g, '0');
+    var s = RU[san[0]] ? RU[san[0]] + san.slice(1) : san;
+    return s.replace(/=([NBRQ])/, function (_, p) { return '=' + RU[p]; });
+  }
+  function moveLabel(ply, san) { var n = Math.floor(ply / 2) + 1; return (ply % 2 === 0 ? n + '. ' : n + '… ') + ru(san); }
+
+  /* ================= openings ================= */
+  function parsePgn(pgn) {
+    var toks = pgn.match(/\{[^}]*\}|[^\s{}]+/g) || [], moves = [], anns = [], comments = [];
+    toks.forEach(function (t) {
+      if (t[0] === '{') { comments[moves.length - 1] = t.slice(1, -1).trim(); return; }
+      t = t.replace(/^\d+\.+/, '');
+      if (!t || /^(1-0|0-1|1\/2-1\/2|\*)$/.test(t)) return;
+      var m = t.match(/^(.*?)([!?]*)$/);
+      moves.push(m[1]); anns.push(m[2] || '');
+    });
+    return { moves: moves, anns: anns, comments: comments };
+  }
+  function buildTree(lines) {
+    var root = { ply: 0, children: [], lineKeys: [], parent: null, uci: null };
+    lines.forEach(function (ln) {
+      var node = root; node.lineKeys.push(ln.key);
+      ln.ucis.forEach(function (u, k) {
+        var ch = null;
+        for (var i = 0; i < node.children.length; i++) if (node.children[i].uci === u) ch = node.children[i];
+        if (!ch) {
+          ch = { uci: u, san: ln.sans[k], ann: ln.anns[k], comment: ln.comments[k] || '', ply: k + 1, children: [], lineKeys: [], parent: node };
+          node.children.push(ch);
+        } else if (!ch.comment && ln.comments[k]) ch.comment = ln.comments[k];
+        ch.lineKeys.push(ln.key);
+        node = ch;
+      });
+    });
+    return root;
+  }
+  var ALL_LINES = [], LINE_BY_KEY = {}, OP_BY_ID = {};
+  OPENINGS.forEach(function (op) {
+    OP_BY_ID[op.id] = op;
+    op.lines.forEach(function (ln, i) {
+      var r = parsePgn(ln.pgn), p = new E.Position();
+      ln.ucis = []; ln.sans = []; ln.anns = r.anns; ln.comments = r.comments;
+      for (var k = 0; k < r.moves.length; k++) {
+        var m = p.parseSan(r.moves[k]);
+        if (!m) break;
+        ln.sans.push(p.san(m)); ln.ucis.push(p.uci(m)); p.make(m);
+      }
+      ln.fen = p.fen(); ln.key = op.id + '-' + i; ln.op = op; ln.idx = i;
+      ALL_LINES.push(ln); LINE_BY_KEY[ln.key] = ln;
+    });
+    op.tree = buildTree(op.lines);
+  });
+  function lineTree(ln) { if (!ln.tree) ln.tree = buildTree([ln]); return ln.tree; }
+  function treeComment(op, ucis, k) {
+    var node = op.tree;
+    for (var i = 0; i <= k; i++) {
+      var nx = null;
+      for (var j = 0; j < node.children.length; j++) if (node.children[j].uci === ucis[i]) nx = node.children[j];
+      if (!nx) return '';
+      node = nx;
+    }
+    return node.comment || '';
+  }
+  function userMovesIn(ln) { var u = ln.op.side === 'w' ? 0 : 1, c = 0; for (var k = 0; k < ln.ucis.length; k++) if (k % 2 === u) c++; return c; }
+
+  // opening book for the bot
+  var BOOK = new Map();
+  ALL_LINES.forEach(function (ln) {
+    for (var k = 0; k < ln.ucis.length; k++) {
+      var key = ln.ucis.slice(0, k).join(' '), arr = BOOK.get(key);
+      if (!arr) { arr = []; BOOK.set(key, arr); }
+      var bad = /\?/.test(ln.anns[k]) && ln.anns[k] !== '!?';
+      var ex = arr.filter(function (x) { return x.uci === ln.ucis[k]; })[0];
+      if (ex) ex.bad = ex.bad || bad; else arr.push({ uci: ln.ucis[k], bad: bad });
+    }
+  });
+
+  // opening-name detection during games
+  var GENERIC = [
+    ['e4 e5', 'Открытая игра'], ['e4 c5', 'Сицилианская защита'], ['e4 e6', 'Французская защита'], ['e4 c6', 'Защита Каро-Канн'],
+    ['e4 d5', 'Скандинавская защита'], ['e4 d6', 'Защита Пирца'], ['e4 g6', 'Современная защита'], ['e4 Nf6', 'Защита Алехина'],
+    ['e4 e5 Nf3 Nc6 Bb5', 'Испанская партия'], ['e4 e5 Nf3 Nc6 Bc4', 'Итальянская партия'], ['e4 e5 Nf3 Nc6 d4', 'Шотландская партия'],
+    ['e4 e5 Nf3 Nf6', 'Русская партия'], ['e4 e5 Nf3 d6', 'Защита Филидора'], ['e4 e5 Nc3', 'Венская партия'], ['e4 e5 f4', 'Королевский гамбит'],
+    ['e4 e5 Nf3 Nc6 Nc3', 'Партия четырёх коней'], ['e4 e5 Nf3 Nc6 Bc4 Nf6', 'Защита двух коней'],
+    ['d4 d5', 'Закрытое начало'], ['d4 d5 c4', 'Ферзевый гамбит'], ['d4 d5 c4 c6', 'Славянская защита'], ['d4 Nf6', 'Индийская защита'],
+    ['d4 Nf6 c4 g6', 'Староиндийская защита'], ['d4 Nf6 c4 e6', 'Индийская защита'], ['d4 Nf6 c4 e6 Nc3 Bb4', 'Защита Нимцовича'],
+    ['d4 f5', 'Голландская защита'], ['c4', 'Английское начало'], ['Nf3', 'Дебют Рети'], ['d4 d5 Bf4', 'Лондонская система'], ['d4 Nf6 Bf4', 'Лондонская система']
+  ].map(function (g) { return { sans: g[0].split(' '), name: g[1] }; });
+  var GAME_NAME = { legal: 'Защита Филидора', petrovtrap: 'Русская партия', blackburne: 'Гамбит Блэкберна–Шиллинга', englund: 'Гамбит Энглунда', siberian: 'Гамбит Смит-Морра', noah: 'Испанская партия', scholar: 'Ранний выход ферзя' };
+  var SIGS = [];
+  OPENINGS.forEach(function (op) {
+    op.lines.forEach(function (ln) {
+      for (var k = 1; k <= ln.ucis.length; k++) {
+        var pre = ln.ucis.slice(0, k).join(' '), shared = false;
+        for (var i = 0; i < ALL_LINES.length && !shared; i++) {
+          var o = ALL_LINES[i];
+          if (o.op === op) continue;
+          if (o.ucis.slice(0, k).join(' ') === pre) shared = true;
+        }
+        if (!shared) { SIGS.push({ ucis: ln.ucis.slice(0, k), name: GAME_NAME[op.id] || op.name }); break; }
+      }
+    });
+  });
+  function detectOpening(ucis, sans) {
+    var best = null, bestLen = 0;
+    function isPre(a, b) { if (a.length > b.length) return false; for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; }
+    var clean = sans.map(function (s) { return s.replace(/[+#]/g, ''); });
+    GENERIC.forEach(function (g) { if (g.sans.length >= bestLen && isPre(g.sans, clean)) { best = g.name; bestLen = g.sans.length; } });
+    SIGS.forEach(function (s) { if (s.ucis.length >= bestLen && isPre(s.ucis, ucis)) { best = s.name; bestLen = s.ucis.length; } });
+    return best;
+  }
+
+  /* ================= progress ================= */
+  function lp(key) { return progress[key] || { a: 0, c: 0, e: 0, t: 0 }; }
+  function starsOf(key) { return Math.min(3, lp(key).c); }
+  function record(key, clean, errs) {
+    var p = Object.assign({}, lp(key));
+    p.a++; if (clean) p.c++; p.e = errs; p.t = Date.now();
+    progress[key] = p; store.set('gt-progress', progress);
+  }
+  function starsHtml(n) { var s = ''; for (var i = 0; i < 3; i++) s += i < n ? '★' : '<span class="off">★</span>'; return '<span class="stars" aria-label="' + n + ' из 3">' + s + '</span>'; }
+  function dotsHtml(op) {
+    return '<span class="dots" aria-label="Освоено ' + op.lines.filter(function (l) { return starsOf(l.key) >= 3; }).length + ' из ' + op.lines.length + '">' +
+      op.lines.map(function (l) { var s = starsOf(l.key); return '<i class="' + (s >= 3 ? 'full' : s > 0 ? 'half' : '') + '"></i>'; }).join('') + '</span>';
+  }
+  function masteredCount() { return ALL_LINES.filter(function (l) { return starsOf(l.key) >= 3; }).length; }
+  function reviewPool() {
+    return ALL_LINES.filter(function (l) { var p = lp(l.key); return p.a > 0 && (p.e > 0 || p.c < 3); })
+      .sort(function (a, b) { var pa = lp(a.key), pb = lp(b.key); return (pb.e - pa.e) || (starsOf(a.key) - starsOf(b.key)) || (pa.t - pb.t); });
+  }
+
+  /* ================= sound ================= */
+  var actx = null;
+  function ac() {
+    try {
+      if (!actx) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C(); }
+      if (actx.state === 'suspended') actx.resume();
+    } catch (e) { return null; }
+    return actx;
+  }
+  function noise(ctx, t, freq, dur, vol) {
+    var len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.1;
+    var g = ctx.createGain(); g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(t);
+  }
+  function tone(ctx, t, f1, f2, dur, type, vol) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f1, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur + 0.03);
+  }
+  function sfx(kind) {
+    if (!settings.sound) return;
+    var ctx = ac(); if (!ctx) return;
+    var t = ctx.currentTime;
+    try {
+      if (kind === 'move') noise(ctx, t, 1600, 0.05, 1.4);
+      else if (kind === 'capture') { noise(ctx, t, 900, 0.07, 1.8); noise(ctx, t + 0.045, 1500, 0.04, 0.9); }
+      else if (kind === 'check') { noise(ctx, t, 1600, 0.05, 1.2); tone(ctx, t + 0.03, 880, 0, 0.16, 'triangle', 0.1); }
+      else if (kind === 'bad') tone(ctx, t, 220, 140, 0.22, 'sawtooth', 0.06);
+      else if (kind === 'done') { tone(ctx, t, 523, 0, 0.18, 'sine', 0.09); tone(ctx, t + 0.12, 659, 0, 0.18, 'sine', 0.09); tone(ctx, t + 0.24, 784, 0, 0.34, 'sine', 0.09); }
+    } catch (e) { }
+  }
+  function moveSound(pos, captured) { if (pos.inCheck()) sfx('check'); else sfx(captured ? 'capture' : 'move'); }
+  function buzz() { try { if (navigator.vibrate) navigator.vibrate(50); } catch (e) { } }
+
+  /* ================= move helpers ================= */
+  function moveAnim(m) {
+    var from = E.mFrom(m), to = E.mTo(m), a = [{ from: from, to: to }];
+    if (E.mFlag(m) === E.F_CASTLE) {
+      if (to === 6) a.push({ from: 7, to: 5 }); else if (to === 2) a.push({ from: 0, to: 3 });
+      else if (to === 118) a.push({ from: 119, to: 117 }); else a.push({ from: 112, to: 115 });
+    }
+    return a;
+  }
+  function reverseAnim(a) { return a.map(function (x) { return { from: x.to, to: x.from }; }); }
+  function isCapture(pos, m) { return !!pos.board[E.mTo(m)] || E.mFlag(m) === E.F_EP; }
+  function uciSquares(u) { return [E.sqParse(u.slice(0, 2)), E.sqParse(u.slice(2, 4))]; }
+  function posFrom(ucis, n) { var p = new E.Position(); for (var i = 0; i < n; i++) { var m = p.parseUci(ucis[i]); if (!m) break; p.make(m); } return p; }
+
+  /* ================= board UI ================= */
+  function BoardUI(host) {
+    this.host = host; this.orient = 0; this.pos = new E.Position();
+    this.movable = null; this.sel = -1; this.marks = {}; this.arrows = []; this.last = null;
+    this.onMove = null; this.drag = null; this.pendingTo = -1; this.promoOpen = false;
+    host.innerHTML = '<div class="board" aria-label="Шахматная доска"><div class="sqs"></div><svg class="arrows" viewBox="0 0 800 800" aria-hidden="true"></svg><div class="ghost" hidden></div><div class="promo" hidden></div></div>';
+    this.el = host.firstChild;
+    this.sqWrap = this.el.querySelector('.sqs');
+    this.svg = this.el.querySelector('.arrows');
+    this.ghost = this.el.querySelector('.ghost');
+    this.promoEl = this.el.querySelector('.promo');
+    this.cells = [];
+    for (var i = 0; i < 64; i++) { var d = document.createElement('div'); this.sqWrap.appendChild(d); this.cells.push(d); }
+    var self = this;
+    this.el.addEventListener('pointerdown', function (e) { self._down(e); });
+    this.el.addEventListener('pointermove', function (e) { self._move(e); });
+    this.el.addEventListener('pointerup', function (e) { self._up(e); });
+    this.el.addEventListener('pointercancel', function () { self._cancel(); });
+    this.el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  }
+  var BP = BoardUI.prototype;
+  BP.toSq = function (i) { var r = i >> 3, c = i & 7; return this.orient === 0 ? (7 - r) * 16 + c : r * 16 + (7 - c); };
+  BP.toIdx = function (sq) { var rank = sq >> 4, file = sq & 7; return this.orient === 0 ? (7 - rank) * 8 + file : rank * 8 + (7 - file); };
+  BP.targets = function (from) {
+    var out = {};
+    if (from < 0 || !this.movable) return out;
+    for (var i = 0; i < this.movable.length; i++) if (E.mFrom(this.movable[i]) === from) out[E.mTo(this.movable[i])] = true;
+    return out;
+  };
+  BP.hasMoves = function (from) {
+    if (!this.movable) return false;
+    for (var i = 0; i < this.movable.length; i++) if (E.mFrom(this.movable[i]) === from) return true;
+    return false;
+  };
+  BP.setMovable = function (moves) { this.movable = moves; if (!moves) this.sel = -1; };
+  BP.draw = function (opts) {
+    opts = opts || {};
+    var b = this.pos.board, tg = settings.legal ? this.targets(this.sel) : {};
+    var chk = this.pos.inCheck() ? this.pos.kings[this.pos.side] : -1;
+    for (var i = 0; i < 64; i++) {
+      var sq = this.toSq(i), cell = this.cells[i], p = b[sq];
+      var cls = 'sq ' + (((i >> 3) + (i & 7)) % 2 ? 'd' : 'l');
+      if (this.last && (sq === this.last[0] || sq === this.last[1])) cls += ' last';
+      if (sq === this.sel) cls += ' sel';
+      if (this.marks[sq]) cls += ' m-' + this.marks[sq];
+      if (sq === chk) cls += ' chk';
+      if (tg[sq]) cls += p ? ' cap' : ' tgt';
+      cell.className = cls;
+      var html = '';
+      if (settings.coords) {
+        if ((i >> 3) === 7) html += '<span class="coord f">' + 'abcdefgh'[sq & 7] + '</span>';
+        if ((i & 7) === 0) html += '<span class="coord r">' + ((sq >> 4) + 1) + '</span>';
+      }
+      if (p) html += '<div class="pw">' + pieceSvg(pieceCode(p)) + '</div>';
+      cell.innerHTML = html;
+    }
+    this.drawArrows();
+    if (opts.anim && !reduceMotion()) this.animate(opts.anim);
+  };
+  BP.animate = function (list) {
+    var self = this;
+    list.forEach(function (a) {
+      var fi = self.toIdx(a.from), ti = self.toIdx(a.to), cell = self.cells[ti], pw = cell.querySelector('.pw');
+      if (!pw) return;
+      var dx = (fi & 7) - (ti & 7), dy = (fi >> 3) - (ti >> 3);
+      cell.classList.add('anim');
+      pw.style.transition = 'none';
+      pw.style.transform = 'translate(' + dx * 100 + '%,' + dy * 100 + '%)';
+      void pw.offsetWidth;
+      pw.style.transition = 'transform 190ms cubic-bezier(.25,.8,.3,1)';
+      pw.style.transform = 'translate(0,0)';
+      setTimeout(function () { cell.classList.remove('anim'); }, 230);
+    });
+  };
+  BP.drawArrows = function () {
+    var s = '', self = this;
+    this.arrows.forEach(function (a) {
+      var f = self.toIdx(a.from), t = self.toIdx(a.to);
+      var x1 = (f & 7) * 100 + 50, y1 = (f >> 3) * 100 + 50, x2 = (t & 7) * 100 + 50, y2 = (t >> 3) * 100 + 50;
+      var ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI, L = Math.hypot(x2 - x1, y2 - y1) - 8;
+      var head = 36, w = 7, hw = 22, st = 22;
+      var pts = [[st, -w], [L - head, -w], [L - head, -hw], [L, 0], [L - head, hw], [L - head, w], [st, w]].map(function (p) { return p[0].toFixed(1) + ',' + p[1]; }).join(' ');
+      var col = a.color || 'rgba(214,140,20,.85)';
+      s += '<polygon points="' + pts + '" fill="' + col + '" transform="translate(' + x1 + ' ' + y1 + ') rotate(' + ang.toFixed(2) + ')"/>';
+    });
+    this.svg.innerHTML = s;
+  };
+  BP._sqAt = function (e) {
+    var r = this.el.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (x < 0 || y < 0 || x >= r.width || y >= r.height) return -1;
+    return this.toSq(Math.floor(y / r.height * 8) * 8 + Math.floor(x / r.width * 8));
+  };
+  BP._down = function (e) {
+    ac();
+    if (this.promoOpen || e.button > 0) return;
+    if (!this.movable) { return; }
+    var sq = this._sqAt(e); if (sq < 0) return;
+    e.preventDefault();
+    if (this.sel >= 0 && this.targets(this.sel)[sq]) { this.pendingTo = sq; return; }
+    var p = this.pos.board[sq];
+    if (p && (p >> 3) === this.pos.side && this.hasMoves(sq)) {
+      var was = this.sel === sq;
+      this.sel = sq;
+      this.drag = { sq: sq, x: e.clientX, y: e.clientY, was: was, active: false };
+      try { this.el.setPointerCapture(e.pointerId); } catch (er) { }
+      this.draw();
+      return;
+    }
+    if (this.sel >= 0) { this.sel = -1; this.draw(); }
+  };
+  BP._move = function (e) {
+    var d = this.drag; if (!d) return;
+    if (!d.active) {
+      if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 7) return;
+      d.active = true;
+      this.ghost.innerHTML = pieceSvg(pieceCode(this.pos.board[d.sq]));
+      this.ghost.hidden = false;
+      this.cells[this.toIdx(d.sq)].classList.add('lift');
+    }
+    var r = this.el.getBoundingClientRect();
+    this.ghost.style.left = (e.clientX - r.left) + 'px';
+    this.ghost.style.top = (e.clientY - r.top) + 'px';
+  };
+  BP._up = function (e) {
+    if (this.pendingTo >= 0) {
+      var to = this.pendingTo, sq = this._sqAt(e); this.pendingTo = -1;
+      if (sq === to) this._attempt(this.sel, to, false);
+      return;
+    }
+    var d = this.drag; if (!d) return;
+    this.drag = null;
+    if (d.active) {
+      this.ghost.hidden = true;
+      var s2 = this._sqAt(e);
+      if (s2 >= 0 && s2 !== d.sq && this.targets(d.sq)[s2]) this._attempt(d.sq, s2, true);
+      else this.draw();
+    } else if (d.was) { this.sel = -1; this.draw(); }
+  };
+  BP._cancel = function () { this.drag = null; this.pendingTo = -1; this.ghost.hidden = true; this.draw(); };
+  BP._attempt = function (from, to, dragged) {
+    var c = (this.movable || []).filter(function (m) { return E.mFrom(m) === from && E.mTo(m) === to; });
+    if (!c.length) return;
+    this.sel = -1;
+    if (c.length > 1) { this._promo(c, dragged); return; }
+    if (this.onMove) this.onMove(c[0], { dragged: dragged });
+  };
+  BP._promo = function (cands, dragged) {
+    var self = this, col = this.pos.side ? 'b' : 'w';
+    this.promoOpen = true;
+    this.draw();
+    var order = [E.Q, E.R, E.B, E.N], names = { 5: 'Ферзь', 4: 'Ладья', 3: 'Слон', 2: 'Конь' };
+    this.promoEl.innerHTML = '<div class="promo-card" role="dialog" aria-label="Выбор фигуры"><div class="promo-title">Превратить пешку в</div>' +
+      order.map(function (t) { return '<button type="button" data-t="' + t + '" aria-label="' + names[t] + '">' + pieceSvg(col + ' pnbrqk'[t], 'pp') + '</button>'; }).join('') + '</div>';
+    this.promoEl.hidden = false;
+    this.promoEl.onclick = function (e) {
+      var b = e.target.closest('button');
+      self.promoEl.hidden = true; self.promoOpen = false; self.promoEl.onclick = null;
+      if (!b) { self.draw(); return; }
+      var t = +b.getAttribute('data-t');
+      var m = cands.filter(function (x) { return E.mPromo(x) === t; })[0];
+      if (m && self.onMove) self.onMove(m, { dragged: dragged });
+    };
+  };
+  function reduceMotion() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  /* ================= bot (worker with sync fallback) ================= */
+  var Bot = (function () {
+    var worker = null, broken = false, seq = 0, pend = {};
+    function syncThink(job) {
+      var p = posFrom(job.moves, job.moves.length), o = Object.assign({}, job.opts);
+      if (o.time) o.time = Math.min(o.time, 1500);
+      var r = E.think(p, o);
+      return { uci: r.move ? p.uci(r.move) : null, score: r.score };
+    }
+    function fail() {
+      broken = true;
+      if (worker) { try { worker.terminate(); } catch (e) { } worker = null; }
+      Object.keys(pend).forEach(function (id) {
+        var j = pend[id]; delete pend[id]; clearTimeout(j.wd);
+        setTimeout(function () { j.resolve(syncThink(j)); }, 30);
+      });
+    }
+    function init() {
+      try {
+        var code = 'var E=(' + ChessEngineModule.toString() + ')();onmessage=function(e){var d=e.data,p=new E.Position();for(var i=0;i<d.moves.length;i++){var m=p.parseUci(d.moves[i]);if(!m)break;p.make(m);}var r=E.think(p,d.opts);postMessage({id:d.id,uci:r.move?p.uci(r.move):null,score:r.score,depth:r.depth});};';
+        var url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+        worker = new Worker(url);
+        worker.onmessage = function (e) { var j = pend[e.data.id]; if (!j) return; delete pend[e.data.id]; clearTimeout(j.wd); j.resolve(e.data); };
+        worker.onerror = function () { fail(); };
+      } catch (e) { broken = true; worker = null; }
+    }
+    function think(moves, opts) {
+      return new Promise(function (resolve) {
+        var job = { id: ++seq, moves: moves.slice(), opts: opts, resolve: resolve };
+        if (broken || !worker) { setTimeout(function () { resolve(syncThink(job)); }, 40); return; }
+        pend[job.id] = job;
+        job.wd = setTimeout(function () { if (pend[job.id]) fail(); }, (opts.time || 1500) + 7000);
+        try { worker.postMessage({ id: job.id, moves: job.moves, opts: opts }); } catch (e) { fail(); }
+      });
+    }
+    return { init: init, think: think };
+  })();
+  Bot.init();
+
+  var LEVELS = [
+    { name: 'Новичок', desc: 'Часто ошибается, подходит для первых партий', opts: { depth: 1, noise: 170, blunder: 0.18 }, book: 0.5 },
+    { name: 'Начинающий', desc: 'Видит простые угрозы, но зевает', opts: { depth: 2, noise: 80, blunder: 0.05 }, book: 0.8 },
+    { name: 'Любитель', desc: 'Играет осмысленно, иногда промахивается', opts: { depth: 3, noise: 30 }, book: 0.9 },
+    { name: 'Клубный', desc: 'Крепкая игра без явных ошибок', opts: { time: 500, depth: 6 }, book: 1 },
+    { name: 'Сильный', desc: 'Считает глубоко и точно в тактике', opts: { time: 1200 }, book: 1 },
+    { name: 'Мастер', desc: 'Максимальная сила, думает дольше', opts: { time: 2500 }, book: 1 }
+  ];
+  function pickBook(ucis, level) {
+    if (ucis.length >= 26) return null;
+    if (Math.random() > LEVELS[level].book) return null;
+    var arr = BOOK.get(ucis.join(' '));
+    if (!arr) return null;
+    var ok = arr.filter(function (x) { return level < 2 || !x.bad; });
+    return ok.length ? rand(ok).uci : null;
+  }
+
+  /* ================= routing ================= */
+  var routeStack = [], replacing = false, current = null;
+  function go(h) { if (location.hash === '#' + h) route(); else location.hash = h; }
+  function backTo(parent) {
+    if (routeStack.length > 1) history.back();
+    else { replacing = true; location.replace('#' + parent); }
+  }
+  function route() {
+    var h = decodeURIComponent(location.hash.slice(1)) || 'openings';
+    if (replacing) { routeStack[routeStack.length - 1] = h; replacing = false; }
+    else if (routeStack.length > 1 && routeStack[routeStack.length - 2] === h) routeStack.pop();
+    else if (routeStack[routeStack.length - 1] !== h) routeStack.push(h);
+    if (current && current.destroy) current.destroy();
+    current = null;
+    closeModal();
+    window.scrollTo(0, 0);
+    var m;
+    if (h === 'openings') viewLibrary();
+    else if (h === 'train') viewTrain();
+    else if (h === 'play') viewPlay();
+    else if ((m = h.match(/^op-([a-z0-9]+)$/))) viewOpening(m[1]);
+    else if ((m = h.match(/^study-([a-z0-9]+)-(\d+)$/))) current = Study(m[1], +m[2]);
+    else if ((m = h.match(/^drill-mix-(w|b|all)$/))) current = Drill({ mix: m[1] });
+    else if (h === 'drill-review') current = Drill({ review: true });
+    else if ((m = h.match(/^drill-([a-z0-9]+)(?:-(\d+))?$/))) current = Drill({ op: m[1], li: m[2] != null ? +m[2] : null });
+    else if (h === 'game') current = GameScreen();
+    else viewLibrary();
+  }
+  window.addEventListener('hashchange', route);
+  function setTabs(active) {
+    document.body.classList.toggle('with-tabs', !!active);
+    tabbar.hidden = !active;
+    Array.prototype.forEach.call(tabbar.querySelectorAll('a'), function (a) {
+      var on = a.getAttribute('data-tab') === active;
+      a.classList.toggle('on', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('scroll', function () {
+    var h = view.querySelector('.apphead, .subhead');
+    if (h) h.classList.toggle('scrolled', window.scrollY > 4);
+  }, { passive: true });
+
+  function appHead() {
+    return '<header class="apphead"><a class="brand" href="#openings"><svg viewBox="0 0 100 100" aria-hidden="true">' + pieceUse('wn') + '</svg><span class="brand-name">Гамбит</span></a>' +
+      '<button class="icon-btn" type="button" data-act="settings" aria-label="Настройки">' + ICON.sliders + '</button></header>';
+  }
+  view.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act="settings"]');
+    if (b) openSettings();
+  });
+
+  /* ================= mini board ================= */
+  function miniBoard(fen, orient) {
+    var p = new E.Position(fen), s = '<svg viewBox="0 0 8 8" aria-hidden="true">';
+    for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) {
+      var sq = orient === 0 ? (7 - r) * 16 + c : r * 16 + (7 - c);
+      s += '<rect x="' + c + '" y="' + r + '" width="1" height="1" class="' + ((r + c) % 2 ? 'md' : 'ml') + '"/>';
+      var pc = p.board[sq];
+      if (pc) s += '<use href="#p-' + pieceCode(pc) + '" x="' + (c + 0.05) + '" y="' + (r + 0.05) + '" width="0.9" height="0.9"/>';
+    }
+    return s + '</svg>';
+  }
+
+  /* ================= library ================= */
+  var libState = { filter: 'all', q: '' };
+  var FILTERS = [['all', 'Все'], ['w', 'За белых'], ['b', 'За чёрных'], ['gambit', 'Гамбиты'], ['trap', 'Ловушки']];
+  function groupOf(op) { return op.trap ? 'trap' : op.gambit ? 'gambit' : op.side; }
+  var GROUPS = [['w', 'Начала за белых'], ['b', 'Защиты за чёрных'], ['gambit', 'Гамбиты'], ['trap', 'Ловушки']];
+  function viewLibrary() {
+    setTabs('openings');
+    var total = ALL_LINES.length, mast = masteredCount();
+    view.innerHTML = appHead() +
+      '<h1 class="page-title">Дебюты и гамбиты</h1>' +
+      '<p class="lead">Выберите дебют и играйте его ходы на доске — соперник отвечает по теории. Освоено ' + mast + ' из ' + total + ' ' + plural(total, ['варианта', 'вариантов', 'вариантов']) + '.</p>' +
+      '<label class="search">' + ICON.search + '<input type="search" id="q" placeholder="Найти дебют" autocomplete="off" value="' + esc(libState.q) + '" aria-label="Поиск дебюта"></label>' +
+      '<div class="chips" role="group" aria-label="Фильтр">' + FILTERS.map(function (f) { return '<button type="button" class="chip" data-f="' + f[0] + '" aria-pressed="' + (libState.filter === f[0]) + '">' + f[1] + '</button>'; }).join('') + '</div>' +
+      '<div id="lib-list"></div>';
+    view.querySelector('#q').addEventListener('input', function (e) { libState.q = e.target.value; renderLibList(); });
+    view.querySelector('.chips').addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      libState.filter = b.getAttribute('data-f');
+      Array.prototype.forEach.call(view.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', c === b); });
+      renderLibList();
+    });
+    renderLibList();
+  }
+  function renderLibList() {
+    var q = libState.q.trim().toLowerCase(), f = libState.filter;
+    var ops = OPENINGS.filter(function (op) {
+      if (f === 'w' || f === 'b') { if (op.side !== f) return false; }
+      else if (f === 'gambit') { if (!op.gambit) return false; }
+      else if (f === 'trap') { if (!op.trap) return false; }
+      if (q && (op.name + ' ' + op.eco + ' ' + op.lines.map(function (l) { return l.name; }).join(' ')).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    var html = '';
+    GROUPS.forEach(function (g) {
+      var list = ops.filter(function (op) { return groupOf(op) === g[0]; });
+      if (!list.length) return;
+      html += '<div class="group-title"><h2>' + g[1] + '</h2><span>' + list.length + '</span></div><div class="op-list">' +
+        list.map(function (op) {
+          return '<a class="op-row" href="#op-' + op.id + '"><span class="mini">' + miniBoard(op.lines[0].fen, op.side === 'w' ? 0 : 1) + '</span>' +
+            '<span><span class="op-name">' + esc(op.name) + '</span><span class="op-meta">' + (g[0] === 'gambit' || g[0] === 'trap' ? '<span class="side ' + op.side + '">' + (op.side === 'w' ? 'За белых' : 'За чёрных') + '</span>' : '') + '<span>' +
+            op.lines.length + ' ' + plural(op.lines.length, ['вариант', 'варианта', 'вариантов']) + '</span><span>' + esc(op.eco) + '</span></span></span>' + dotsHtml(op) + '</a>';
+        }).join('') + '</div>';
+    });
+    view.querySelector('#lib-list').innerHTML = html || '<p class="empty">Ничего не найдено. Попробуйте другое название или сбросьте фильтр.</p>';
+  }
+
+  /* ================= opening page ================= */
+  var LVL_TXT = ['', 'простой', 'средний', 'сложный'];
+  function firstSentence(t) { if (!t) return ''; var m = t.match(/^.*?[.!?…](\s|$)/); return m ? m[0].trim() : t; }
+  function nodeAt(op, ucis, n) {
+    var nd = op.tree;
+    for (var i = 0; i < n; i++) {
+      var nx = null;
+      for (var j = 0; j < nd.children.length; j++) if (nd.children[j].uci === ucis[i]) nx = nd.children[j];
+      if (!nx) return null;
+      nd = nx;
+    }
+    return nd;
+  }
+  function endsAt(nd) { return nd.lineKeys.map(function (k) { return LINE_BY_KEY[k]; }).filter(function (ln) { return ln.ucis.length === nd.ply; }); }
+  function variationMap(op) {
+    var user = op.side === 'w' ? 0 : 1;
+    function runHtml(nodes) {
+      return nodes.map(function (nd, i) {
+        var k = nd.ply - 1, num = k % 2 === 0 ? (Math.floor(k / 2) + 1) + '.\u00a0' : (i === 0 ? (Math.floor(k / 2) + 1) + '…\u00a0' : '');
+        return '<span class="vm' + (k % 2 === user ? ' own' : '') + '">' + num + esc(ru(nd.san)) + '</span>';
+      }).join(' ');
+    }
+    function leaf(ln) {
+      return '<div class="vleaf"><div class="vleaf-top"><span class="vleaf-name">' + esc(ln.name) + '</span>' + starsHtml(starsOf(ln.key)) + '</div>' +
+        '<div class="vleaf-act"><a class="btn sm" href="#study-' + op.id + '-' + ln.idx + '">' + ICON.book + 'Изучить</a><a class="btn sm primary" href="#drill-' + op.id + '-' + ln.idx + '">' + ICON.target + 'Тренировать</a></div></div>';
+    }
+    function walk(node, isRoot) {
+      var seq = isRoot ? [] : [node], cur = node;
+      while (cur.children.length === 1 && !endsAt(cur).length) { cur = cur.children[0]; seq.push(cur); }
+      var html = '', rest = isRoot ? seq : seq.slice(1);
+      if (!isRoot) {
+        var own = (node.ply - 1) % 2 === user;
+        html += '<div class="vhead"><span class="tag ' + (own ? 'good' : 'opp') + '">' + (own ? 'ваш выбор' : 'соперник') + '</span><b class="vfirst">' + esc(moveLabel(node.ply - 1, node.san)) + '</b></div>';
+        if (node.comment) html += '<p class="vnote">' + esc(firstSentence(node.comment)) + '</p>';
+        var reply = rest[0];
+        if (!own && reply && (reply.ply - 1) % 2 === user && reply.comment) html += '<p class="vreply"><b>Ваш ответ ' + esc(moveLabel(reply.ply - 1, reply.san)) + '.</b> ' + esc(firstSentence(reply.comment)) + '</p>';
+      }
+      if (rest.length) html += '<div class="vrun">' + runHtml(rest) + '</div>';
+      endsAt(cur).forEach(function (ln) { html += leaf(ln); });
+      if (cur.children.length > 1) html += '<ul class="vbr">' + cur.children.map(function (ch) { return '<li>' + walk(ch, false) + '</li>'; }).join('') + '</ul>';
+      else if (cur.children.length === 1) html += '<ul class="vbr"><li>' + walk(cur.children[0], false) + '</li></ul>';
+      return html;
+    }
+    return walk(op.tree, true);
+  }
+  function viewOpening(id) {
+    var op = OP_BY_ID[id];
+    if (!op) { go('openings'); return; }
+    setTabs('openings');
+    var n = op.lines.length;
+    var html = '<div class="subhead"><button class="icon-btn" type="button" id="bk" aria-label="Назад">' + ICON.back + '</button><span class="t">Дебюты</span></div>' +
+      '<div class="op-hero"><span class="mini">' + miniBoard(op.lines[0].fen, op.side === 'w' ? 0 : 1) + '</span><div>' +
+      '<p class="op-kind"><span class="side ' + op.side + '">' + (op.side === 'w' ? 'Вы играете белыми' : 'Вы играете чёрными') + '</span><span>' + esc(op.eco) + '</span><span>' + n + ' ' + plural(n, ['вариант', 'варианта', 'вариантов']) + '</span><span>Уровень: ' + LVL_TXT[op.lvl || 1] + '</span></p>' +
+      '<h1 class="op-title">' + esc(op.name) + '</h1><p class="op-desc">' + esc(op.desc) + '</p></div></div>';
+    if (op.ideas && op.ideas.length) html += '<h2 class="sec">Ключевые идеи</h2><ul class="ideas">' + op.ideas.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
+    if (n > 1) {
+      var mast = op.lines.filter(function (l) { return starsOf(l.key) >= 3; }).length;
+      html += '<div class="cta-col"><a class="btn primary big" href="#drill-' + op.id + '">' + ICON.shuffle + 'Тренировать все варианты</a>' +
+        '<p class="hint">Соперник каждый раз выбирает новый ответ, пока вы не пройдёте все ' + n + '. Освоено: ' + mast + ' из ' + n + '.</p></div>';
+      html += '<h2 class="sec">Карта вариантов</h2><p class="sec-lead">Где соперник может свернуть с главной линии и как на это отвечать. Ваши ходы выделены.</p>' +
+        '<div class="vmap">' + variationMap(op) + '</div>';
+    } else {
+      var ln = op.lines[0];
+      html += '<h2 class="sec">Вариант</h2><div class="vmap">' + variationMap(op) + '</div>';
+    }
+    html += '<div class="cta-col"><button class="btn big" type="button" id="vsbot">' + ICON.pawn + 'Сыграть с ботом из этого дебюта</button></div>';
+    view.innerHTML = html;
+    view.querySelector('#bk').onclick = function () { backTo('openings'); };
+    view.querySelector('#vsbot').onclick = function () {
+      startGame({ ucis: op.lines[0].ucis.slice(), user: op.side === 'w' ? 0 : 1, level: settings.level, label: op.name });
+    };
+  }
+
+  /* ================= board screen scaffold ================= */
+  function mountBoardScreen(o) {
+    setTabs(null);
+    view.innerHTML = '<section class="bscreen"><header class="bhead"><button class="icon-btn" type="button" data-b="back" aria-label="Назад">' + ICON.back + '</button>' +
+      '<div class="btitle"><h1></h1><p></p></div><button class="icon-btn" type="button" data-b="flip" aria-label="Перевернуть доску">' + ICON.flip + '</button></header>' +
+      '<div class="blayout"><div class="bcol"><div class="pbar" data-p="top"><span class="pname"></span><span class="pcap"></span></div><div class="bhost"></div>' +
+      '<div class="pbar" data-p="bot"><span class="pname"></span><span class="pcap"></span></div></div>' +
+      '<div class="scol"><div class="note" aria-live="polite"></div><div class="ctrls"></div><div class="sheet-wrap"><div class="sheet"></div></div></div></div></section>';
+    var ui = {
+      h1: view.querySelector('.btitle h1'), sub: view.querySelector('.btitle p'),
+      note: view.querySelector('.note'), ctrls: view.querySelector('.ctrls'), sheet: view.querySelector('.sheet'),
+      top: view.querySelector('[data-p="top"]'), bot: view.querySelector('[data-p="bot"]'),
+      names: ['Белые', 'Чёрные'], onFlip: null
+    };
+    ui.h1.textContent = o.title; ui.sub.textContent = o.sub || '';
+    ui.board = new BoardUI(view.querySelector('.bhost'));
+    activeBoard = ui.board;
+    view.querySelector('[data-b="back"]').onclick = function () { backTo(o.back); };
+    view.querySelector('[data-b="flip"]').onclick = function () { ui.board.orient ^= 1; ui.board.draw(); updateBars(ui); if (ui.onFlip) ui.onFlip(); };
+    return ui;
+  }
+  function material(pos) {
+    var cnt = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], b = pos.board;
+    for (var s = 0; s < 128; s++) { if (s & 0x88) { s += 7; continue; } if (b[s]) cnt[b[s] >> 3][b[s] & 7]++; }
+    return cnt;
+  }
+  function updateBars(ui) {
+    var pos = ui.board.pos, cnt = material(pos), init = [0, 8, 2, 2, 2, 1], val = [0, 1, 3, 3, 5, 9];
+    var score = [0, 0];
+    for (var c = 0; c < 2; c++) for (var t = 1; t <= 5; t++) score[c] += cnt[c][t] * val[t];
+    [['top', ui.board.orient ^ 1], ['bot', ui.board.orient]].forEach(function (pair) {
+      var el = ui[pair[0]], side = pair[1], opp = side ^ 1;
+      var nm = el.querySelector('.pname');
+      nm.className = 'pname ' + (side ? 'b' : 'w') + (pos.side === side ? ' turn' : '');
+      nm.textContent = ui.names[side];
+      var caps = '';
+      [5, 4, 3, 2, 1].forEach(function (t) { var lost = Math.max(0, init[t] - cnt[opp][t]); for (var i = 0; i < lost; i++) caps += pieceSvg((opp ? 'b' : 'w') + ' pnbrqk'[t], 'cp'); });
+      var diff = score[side] - score[opp];
+      el.querySelector('.pcap').innerHTML = caps + (diff > 0 ? '<b>+' + diff + '</b>' : '');
+    });
+  }
+  function renderSheet(ui, sans, cur, clickable, onPick) {
+    if (!sans.length) { ui.sheet.innerHTML = '<div class="sheet-empty">Ходов пока нет</div>'; return; }
+    var html = '';
+    for (var i = 0; i < sans.length; i += 2) {
+      html += '<div class="srow"><span class="sn">' + (i / 2 + 1) + '.</span>' +
+        '<button type="button" class="sm' + (cur === i + 1 ? ' cur' : '') + '" data-ply="' + (i + 1) + '"' + (clickable ? '' : ' disabled') + '>' + esc(ru(sans[i])) + '</button>' +
+        (sans[i + 1] ? '<button type="button" class="sm' + (cur === i + 2 ? ' cur' : '') + '" data-ply="' + (i + 2) + '"' + (clickable ? '' : ' disabled') + '>' + esc(ru(sans[i + 1])) + '</button>' : '<span></span>') + '</div>';
+    }
+    ui.sheet.innerHTML = html;
+    ui.sheet.onclick = clickable ? function (e) { var b = e.target.closest('.sm'); if (b) onPick(+b.getAttribute('data-ply')); } : null;
+    var c = ui.sheet.querySelector('.cur') || ui.sheet.lastElementChild;
+    if (c) { var top = c.offsetTop - ui.sheet.clientHeight / 2; ui.sheet.scrollTop = Math.max(0, top); }
+  }
+  function btn(act, icon, label, cls, disabled) {
+    return '<button type="button" class="btn ' + (cls || '') + '" data-a="' + act + '"' + (disabled ? ' disabled' : '') + '>' + (icon || '') + '<span>' + label + '</span></button>';
+  }
+  function navBtns(cur, len) {
+    return '<div class="nav">' +
+      '<button type="button" class="btn" data-a="first" aria-label="В начало"' + (cur <= 0 ? ' disabled' : '') + '>' + ICON.first + '</button>' +
+      '<button type="button" class="btn" data-a="prev" aria-label="Назад на ход"' + (cur <= 0 ? ' disabled' : '') + '>' + ICON.prev + '</button>' +
+      '<button type="button" class="btn" data-a="next" aria-label="Вперёд на ход"' + (cur >= len ? ' disabled' : '') + '>' + ICON.next + '</button>' +
+      '<button type="button" class="btn" data-a="last" aria-label="В конец"' + (cur >= len ? ' disabled' : '') + '>' + ICON.last + '</button></div>';
+  }
+  function makeLife() {
+    var S = { alive: true, timers: [], keys: null };
+    S.later = function (fn, ms) { var id = setTimeout(function () { if (S.alive) fn(); }, ms); S.timers.push(id); return id; };
+    S.destroy = function () { S.alive = false; S.timers.forEach(clearTimeout); if (S.keys) document.removeEventListener('keydown', S.keys); };
+    S.onKeys = function (fn) { S.keys = fn; document.addEventListener('keydown', fn); };
+    return S;
+  }
+
+  /* ================= study ================= */
+  function Study(opId, li) {
+    var op = OP_BY_ID[opId], line = op && op.lines[li];
+    if (!line) { go('openings'); return null; }
+    var S = makeLife(), user = op.side === 'w' ? 0 : 1, len = line.ucis.length, cur = 0, showNext = true, flash = '';
+    var ui = mountBoardScreen({ title: op.name, sub: 'Изучение: ' + line.name, back: 'op-' + op.id });
+    ui.board.orient = user;
+    function comment(k) { return line.comments[k] || treeComment(op, line.ucis, k); }
+    function switchTo(ln) {
+      if (ln === line) return;
+      line = ln; len = ln.ucis.length; li = ln.idx;
+      ui.sub.textContent = 'Изучение: ' + ln.name;
+      var h = 'study-' + op.id + '-' + ln.idx;
+      try { history.replaceState(null, '', '#' + h); routeStack[routeStack.length - 1] = h; } catch (e) { }
+    }
+    function lineVia(u) {
+      for (var i = 0; i < op.lines.length; i++) {
+        var o = op.lines[i], ok = o.ucis.length > cur && o.ucis[cur] === u;
+        for (var k = 0; ok && k < cur; k++) if (o.ucis[k] !== line.ucis[k]) ok = false;
+        if (ok) return o;
+      }
+      return null;
+    }
+    function altsHtml() {
+      if (cur >= len) return '';
+      var nd = nodeAt(op, line.ucis, cur);
+      if (!nd || nd.children.length < 2) return '';
+      var own = cur % 2 === user;
+      return '<div class="alts"><p class="alts-h">' + (own ? 'Здесь у вас есть выбор:' : 'Соперник может ответить по-разному. Выберите, что разобрать:') + '</p><div class="alt-row">' +
+        nd.children.map(function (ch) {
+          var ln = LINE_BY_KEY[ch.lineKeys[0]];
+          return '<button type="button" class="alt" data-u="' + ch.uci + '" aria-pressed="' + (ch.uci === line.ucis[cur]) + '"><b>' + esc(moveLabel(ch.ply - 1, ch.san)) + '</b><span>' + esc(ch.lineKeys.length > 1 ? ch.lineKeys.length + ' ' + plural(ch.lineKeys.length, ['вариант', 'варианта', 'вариантов']) : ln.name) + '</span></button>';
+        }).join('') + '</div></div>';
+    }
+    function render(anim) {
+      var pos = posFrom(line.ucis, cur), b = ui.board;
+      b.pos = pos; b.sel = -1; b.marks = {};
+      b.last = cur ? uciSquares(line.ucis[cur - 1]) : null;
+      b.arrows = showNext && cur < len ? [{ from: uciSquares(line.ucis[cur])[0], to: uciSquares(line.ucis[cur])[1] }] : [];
+      b.setMovable(cur < len ? pos.legalMoves() : null);
+      b.draw({ anim: anim });
+      updateBars(ui);
+      var n = '';
+      if (flash) n += '<p class="n-mistake">' + flash + '</p>';
+      if (cur === 0) {
+        n += '<div class="n-entry"><p class="n-title">' + esc(line.name) + '</p><p class="n-text">' + esc(op.desc) + '</p></div>' +
+          '<p class="n-prompt">Сделайте первый ход на доске или нажмите «вперёд».</p>';
+      } else {
+        var k = cur - 1, own = (k % 2) === user, c = comment(k);
+        n += '<div class="n-entry"><p class="n-move">' + esc(moveLabel(k, line.sans[k])) + ' <span class="tag ' + (own ? 'good' : 'opp') + '">' + (own ? 'ваш ход' : 'соперник') + '</span></p>' +
+          (c ? '<p class="n-text">' + esc(c) + '</p>' : '') + '</div>';
+        if (cur === len) n += '<div class="n-entry"><p class="n-title">Вариант закончился</p><p class="n-sub">' + (op.lines.length > 1 ? 'Вернитесь назад по ходам, чтобы разобрать другие ответы соперника, или потренируйте этот вариант.' : 'Теперь сыграйте его сами: вы делаете свои ходы, приложение отвечает за соперника.') + '</p></div>';
+      }
+      n += altsHtml();
+      ui.note.innerHTML = n;
+      var c2 = navBtns(cur, len) + btn('arrow', ICON.eye, showNext ? 'Скрыть стрелку' : 'Показать стрелку', 'quiet') + btn('drill', ICON.target, 'Тренировать', cur === len ? 'primary' : '');
+      if (cur === len && !pos.status().over) c2 += btn('bot', ICON.pawn, 'Играть дальше с ботом', 'grow');
+      ui.ctrls.innerHTML = c2;
+      renderSheet(ui, line.sans.slice(0, cur), cur, true, function (p) { flash = ''; setCur(p); });
+    }
+    function setCur(n, animDir) {
+      n = Math.max(0, Math.min(len, n));
+      var anim = null;
+      if (animDir === 1 && n === cur + 1) { var p = posFrom(line.ucis, cur), mv = p.parseUci(line.ucis[cur]); anim = moveAnim(mv); var cap = isCapture(p, mv); p.make(mv); moveSound(p, cap); }
+      else if (animDir === -1 && n === cur - 1) { var p2 = posFrom(line.ucis, n); anim = reverseAnim(moveAnim(p2.parseUci(line.ucis[n]))); }
+      cur = n; render(anim);
+    }
+    ui.note.addEventListener('click', function (e) {
+      var b = e.target.closest('.alt'); if (!b) return;
+      var ln = lineVia(b.getAttribute('data-u'));
+      if (ln) { flash = ''; switchTo(ln); render(); }
+    });
+    ui.board.onMove = function (m, info) {
+      var pos = ui.board.pos, u = pos.uci(m), target = u === line.ucis[cur] ? line : lineVia(u);
+      if (target) {
+        flash = '';
+        switchTo(target);
+        var cap = isCapture(pos, m);
+        cur++;
+        render(info.dragged ? null : moveAnim(m));
+        moveSound(ui.board.pos, cap);
+      } else {
+        sfx('bad'); buzz();
+        flash = 'В разобранных вариантах здесь другой ход. ' + (showNext ? 'Он показан стрелкой.' : 'Нажмите «вперёд», чтобы его увидеть.');
+        render();
+      }
+    };
+    ui.ctrls.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-a]'); if (!b) return;
+      var a = b.getAttribute('data-a');
+      flash = '';
+      if (a === 'first') setCur(0);
+      else if (a === 'prev') setCur(cur - 1, -1);
+      else if (a === 'next') setCur(cur + 1, 1);
+      else if (a === 'last') setCur(len);
+      else if (a === 'arrow') { showNext = !showNext; render(); }
+      else if (a === 'drill') go('drill-' + op.id + '-' + li);
+      else if (a === 'bot') startGame({ ucis: line.ucis.slice(), user: user, level: settings.level, label: op.name });
+    });
+    S.onKeys(function (e) { if (e.key === 'ArrowRight') { flash = ''; setCur(cur + 1, 1); } else if (e.key === 'ArrowLeft') { flash = ''; setCur(cur - 1, -1); } });
+    render();
+    return S;
+  }
+
+  /* ================= drill ================= */
+  function Drill(spec) {
+    var op = null, fixed = null, pool, title, backRoute, allMode = false;
+    if (spec.mix) {
+      pool = ALL_LINES.filter(function (l) { return spec.mix === 'all' || l.op.side === spec.mix; });
+      title = spec.mix === 'w' ? 'Варианты за белых' : spec.mix === 'b' ? 'Варианты за чёрных' : 'Все дебюты вперемешку';
+      backRoute = 'train';
+    } else if (spec.review) {
+      pool = reviewPool();
+      title = 'Работа над ошибками'; backRoute = 'train';
+      if (!pool.length) { go('train'); return null; }
+    } else {
+      op = OP_BY_ID[spec.op];
+      if (!op) { go('openings'); return null; }
+      pool = op.lines; backRoute = 'op-' + op.id; title = op.name;
+      if (spec.li != null) fixed = op.lines[spec.li] || null;
+      allMode = !fixed;
+    }
+    var S = makeLife();
+    var ui = mountBoardScreen({ title: title, sub: '', back: backRoute });
+    var line, tree, node, pos, user, errors, hints, wrongHere, hintStage, done, path, sans, log, lastMv, busy, lastMistake = '', prevKey = null;
+    var sessionDone = {};
+
+    function weighted(cand) {
+      var minS = Math.min.apply(null, cand.map(function (l) { return starsOf(l.key); }));
+      var low = cand.filter(function (l) { return starsOf(l.key) === minS; });
+      return Math.random() < 0.75 ? rand(low) : rand(cand);
+    }
+    function pickLine(exclude) {
+      if (fixed) return fixed;
+      var cand = pool.filter(function (l) { return l.key !== exclude && (!allMode || !sessionDone[l.key]); });
+      if (!cand.length) cand = pool.filter(function (l) { return l.key !== exclude; });
+      if (!cand.length) cand = pool;
+      return weighted(cand);
+    }
+    function determined() { return fixed || node.lineKeys.length === 1; }
+    function setSub() {
+      var nm = determined() ? line.name : '';
+      if (fixed) ui.sub.textContent = line.name;
+      else if (allMode) ui.sub.textContent = nm ? 'Вариант: ' + nm : 'Соперник выберет один из ' + pool.length + ' ' + plural(pool.length, ['варианта', 'вариантов', 'вариантов']);
+      else ui.sub.textContent = line.op.name + (nm ? ': ' + nm : '');
+      ui.names = user === 0 ? ['Вы', 'Соперник по теории'] : ['Соперник по теории', 'Вы'];
+    }
+    function begin(newLine) {
+      line = newLine || pickLine(prevKey);
+      prevKey = line.key;
+      tree = fixed ? lineTree(line) : line.op.tree;
+      node = tree; pos = new E.Position(); user = line.op.side === 'w' ? 0 : 1;
+      errors = 0; hints = 0; wrongHere = 0; hintStage = 0; done = false; path = []; sans = []; log = []; lastMv = null; busy = false; lastMistake = '';
+      ui.board.orient = user; ui.board.pos = pos; ui.board.last = null; ui.board.arrows = []; ui.board.marks = {}; ui.board.setMovable(null);
+      setSub();
+      ui.board.draw(); updateBars(ui); renderSheet(ui, sans, sans.length, false);
+      if (pos.side !== user) { renderNote('Соперник начинает'); S.later(oppMove, 700); }
+      else { renderNote(); enableInput(); }
+      renderCtrls();
+    }
+    function retarget(child) {
+      if (child.lineKeys.indexOf(line.key) >= 0) return;
+      var opts = child.lineKeys.map(function (k) { return LINE_BY_KEY[k]; });
+      var fresh = opts.filter(function (l) { return !sessionDone[l.key]; });
+      line = weighted(fresh.length ? fresh : opts);
+    }
+    function expected() {
+      var want = line.ucis[node.ply];
+      for (var i = 0; i < node.children.length; i++) if (node.children[i].uci === want) return node.children[i];
+      return node.children[0];
+    }
+    function enableInput() { ui.board.setMovable(pos.legalMoves()); ui.board.draw(); updateBars(ui); }
+    function progressHead() {
+      var doneU = 0;
+      for (var k = 0; k < node.ply; k++) if (k % 2 === user) doneU++;
+      if (!determined()) return '<div class="n-head"><span>Ваших ходов: ' + doneU + '</span><span class="bar"><i style="width:0"></i></span><span>Ошибок: ' + errors + '</span></div>';
+      var tot = userMovesIn(line);
+      return '<div class="n-head"><span>Ваших ходов: ' + doneU + ' из ' + tot + '</span><span class="bar"><i style="width:' + Math.round(doneU / tot * 100) + '%"></i></span><span>Ошибок: ' + errors + '</span></div>';
+    }
+    function entryHtml(en) {
+      var tag = en.kind === 'good' ? 'верно' : en.branch ? 'выбор соперника' : 'соперник';
+      return '<div class="n-entry"><p class="n-move">' + esc(en.label) + ' <span class="tag ' + en.kind + '">' + tag + '</span></p>' +
+        (en.comment ? '<p class="n-text">' + esc(en.comment) + '</p>' : '') +
+        (en.varName ? '<p class="n-var">Это вариант «' + esc(en.varName) + '». Отвечайте по теории.</p>' : '') + '</div>';
+    }
+    function renderNote(extra, mistake) {
+      var n = progressHead();
+      if (mistake) n += '<p class="n-mistake">' + mistake + '</p>';
+      log.slice(-2).forEach(function (en) { n += entryHtml(en); });
+      if (!log.length && !mistake) {
+        var many = !fixed && line.op.tree.lineKeys.length > 1;
+        n += '<div class="n-entry"><p class="n-title">' + esc(line.op.name) + '</p><p class="n-text">' +
+          esc((line.op.side === 'w' ? 'Вы играете белыми. Делайте ходы по теории — соперник ответит.' : 'Вы играете чёрными. Соперник начнёт, отвечайте ходами по теории.') +
+            (many ? ' Соперник может выбрать любой из разобранных вариантов — будьте готовы.' : '')) + '</p></div>';
+      }
+      if (extra) n += '<p class="n-prompt">' + extra + '</p>';
+      else if (!done && pos.side === user) n += '<p class="n-prompt you">Ваш ход</p>';
+      ui.note.innerHTML = n;
+    }
+    function remaining() { return pool.filter(function (l) { return !sessionDone[l.key]; }).length; }
+    function renderCtrls() {
+      if (done) {
+        var c = btn('again', ICON.restart, 'Ещё раз', allMode && remaining() ? '' : 'primary');
+        if (allMode) c += remaining() ? btn('next', ICON.shuffle, 'Следующий вариант', 'primary') : btn('reset', ICON.repeat, 'Пройти все заново');
+        else if (fixed && op.lines.length > 1) c += btn('next', ICON.shuffle, 'Другой вариант');
+        else if (!fixed && pool.length > 1) c += btn('next', ICON.shuffle, 'Следующий вариант');
+        c += (pos.status().over ? '' : btn('bot', ICON.pawn, 'Играть дальше с ботом', 'grow')) + btn('study', ICON.book, 'Изучить с комментариями', 'quiet grow');
+        ui.ctrls.innerHTML = c;
+      } else {
+        ui.ctrls.innerHTML = btn('hint', ICON.bulb, hintStage === 0 ? 'Подсказка' : hintStage === 1 ? 'Показать ход' : 'Ход показан', '', hintStage >= 2 || pos.side !== user || busy) +
+          btn('restart', ICON.restart, 'Сначала');
+      }
+    }
+    function showHint(stage) {
+      var ex = expected(); if (!ex) return;
+      var sq = uciSquares(ex.uci);
+      if (stage >= 1) { ui.board.marks = {}; ui.board.marks[sq[0]] = 'hint'; }
+      if (stage >= 2) ui.board.arrows = [{ from: sq[0], to: sq[1], color: 'rgba(46,150,90,.85)' }];
+      ui.board.draw();
+    }
+    function play(child, m) {
+      var cap = isCapture(pos, m);
+      pos.make(m); path.push(child.uci); sans.push(child.san); node = child;
+      lastMv = [E.mFrom(m), E.mTo(m)];
+      ui.board.last = lastMv; ui.board.arrows = []; ui.board.marks = {};
+      return cap;
+    }
+    ui.board.onMove = function (m, info) {
+      if (done || busy || pos.side !== user) return;
+      var u = pos.uci(m), child = null;
+      for (var i = 0; i < node.children.length; i++) if (node.children[i].uci === u) child = node.children[i];
+      if (child) {
+        var anim = info.dragged ? null : moveAnim(m), wasDet = determined();
+        var cap = play(child, m);
+        retarget(child);
+        ui.board.setMovable(null);
+        ui.board.marks[E.mTo(m)] = 'good';
+        ui.board.draw({ anim: anim }); updateBars(ui);
+        moveSound(pos, cap);
+        log.push({ label: moveLabel(child.ply - 1, child.san), comment: child.comment, kind: 'good' });
+        if (!wasDet && determined()) setSub();
+        wrongHere = 0; hintStage = 0; lastMistake = '';
+        renderSheet(ui, sans, sans.length, false);
+        if (!node.children.length) { finish(); return; }
+        renderNote('Соперник думает…');
+        renderCtrls();
+        S.later(function () { ui.board.marks = {}; oppMove(); }, child.comment ? 1100 : 750);
+      } else {
+        errors++; wrongHere++; busy = true;
+        sfx('bad'); buzz();
+        var from = E.mFrom(m), to = E.mTo(m), an = moveAnim(m), wrongSan = pos.san(m);
+        ui.board.setMovable(null);
+        pos.make(m);
+        ui.board.marks = {}; ui.board.marks[from] = 'bad'; ui.board.marks[to] = 'bad';
+        ui.board.draw({ anim: info.dragged ? null : an });
+        lastMistake = 'Ход ' + esc(ru(wrongSan)) + ' не по теории. ' + (wrongHere >= 2 ? 'Правильный ход показан стрелкой.' : 'Попробуйте ещё раз или возьмите подсказку.');
+        renderNote(null, lastMistake);
+        S.later(function () {
+          pos.unmake();
+          busy = false;
+          ui.board.marks = {}; ui.board.last = lastMv;
+          ui.board.setMovable(pos.legalMoves());
+          ui.board.draw({ anim: reverseAnim(an) });
+          if (wrongHere >= 2) { hintStage = 2; showHint(2); }
+          else if (hintStage) showHint(hintStage);
+          renderNote(null, lastMistake);
+          renderCtrls();
+        }, 650);
+        renderCtrls();
+      }
+    };
+    function oppMove() {
+      if (done || !S.alive) return;
+      var want = line.ucis[node.ply], child = null, branch = node.children.length > 1, wasDet = determined();
+      for (var i = 0; i < node.children.length; i++) if (node.children[i].uci === want) child = node.children[i];
+      if (!child) { child = rand(node.children); retarget(child); }
+      var m = pos.parseUci(child.uci), anim = moveAnim(m);
+      var cap = play(child, m);
+      ui.board.draw({ anim: anim }); updateBars(ui);
+      moveSound(pos, cap);
+      var becameDet = !wasDet && determined();
+      log.push({ label: moveLabel(child.ply - 1, child.san), comment: child.comment, kind: 'opp', branch: branch && !fixed, varName: becameDet && !fixed ? line.name : '' });
+      if (becameDet) setSub();
+      renderSheet(ui, sans, sans.length, false);
+      if (!node.children.length) { finish(); return; }
+      renderNote(); enableInput(); renderCtrls();
+    }
+    function finish() {
+      done = true; ui.board.setMovable(null); ui.board.draw();
+      var clean = errors === 0 && hints === 0;
+      record(line.key, clean, errors + hints);
+      sessionDone[line.key] = true;
+      setSub();
+      sfx('done');
+      var st = starsOf(line.key), last = log[log.length - 1];
+      var n = progressHead();
+      if (last) n += entryHtml(last);
+      n += '<div class="n-entry done-box"><p class="n-title">' + (clean ? 'Вариант пройден без ошибок' : 'Вариант пройден') + '</p>' + starsHtml(st) +
+        '<p class="n-sub">' + (clean ? '' : 'Ошибок: ' + errors + (hints ? ', подсказок: ' + hints : '') + '. ') +
+        (st >= 3 ? 'Вариант освоен — повторяйте его время от времени.' : 'До освоения: ещё ' + (3 - st) + ' ' + plural(3 - st, ['прохождение', 'прохождения', 'прохождений']) + ' без ошибок.') + '</p>';
+      if (allMode) {
+        var dn = pool.length - remaining();
+        n += '<div class="cover"><span>Пройдено в этой серии: ' + dn + ' из ' + pool.length + '</span><span class="bar"><i style="width:' + Math.round(dn / pool.length * 100) + '%"></i></span></div>' +
+          (remaining() ? '' : '<p class="n-sub">Вы прошли все варианты дебюта. Теперь соперник не застанет вас врасплох.</p>');
+      }
+      ui.note.innerHTML = n + '</div>';
+      renderCtrls();
+    }
+    ui.ctrls.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+      var a = b.getAttribute('data-a');
+      if (a === 'hint') {
+        if (pos.side !== user || done) return;
+        hintStage = Math.min(2, hintStage + 1); hints++;
+        showHint(hintStage);
+        var ex = expected();
+        renderNote(hintStage === 1 ? 'Подсказка: ходит отмеченная фигура.' : 'Ход по теории: ' + esc(ru(ex.san)) + '. Сделайте его на доске.');
+        renderCtrls();
+      } else if (a === 'restart' || a === 'again') begin(line);
+      else if (a === 'next') {
+        if (fixed) { var others = op.lines.filter(function (l) { return l !== fixed; }); go('drill-' + op.id + '-' + rand(others).idx); }
+        else begin(pickLine(line.key));
+      }
+      else if (a === 'reset') { sessionDone = {}; begin(pickLine(line.key)); }
+      else if (a === 'bot') startGame({ ucis: path.slice(), user: user, level: settings.level, label: line.op.name });
+      else if (a === 'study') go('study-' + line.op.id + '-' + line.idx);
+    });
+    begin();
+    return S;
+  }
+
+  /* ================= game ================= */
+  function loadGame() { return store.get('gt-game', null); }
+  function saveGame(G) { store.set('gt-game', G); }
+  function startGame(cfg) {
+    var G = { ucis: cfg.ucis || [], user: cfg.user, level: cfg.level, label: cfg.label || '', startLen: (cfg.ucis || []).length, over: null, recorded: false };
+    saveGame(G);
+    go('game');
+  }
+  var REASON = { mate: 'Мат', stalemate: 'Пат', fifty: 'Правило 50 ходов', repetition: 'Троекратное повторение', material: 'Недостаточно материала', resign: 'Вы сдались' };
+  function GameScreen() {
+    var G = loadGame();
+    if (!G) { go('play'); return null; }
+    var S = makeLife(), L = LEVELS[G.level] || LEVELS[2];
+    var ui = mountBoardScreen({ title: 'Игра с ботом', sub: 'Бот: ' + L.name + (G.label ? '. Старт: ' + G.label : ''), back: 'play' });
+    ui.names = G.user === 0 ? ['Вы', 'Бот'] : ['Бот', 'Вы'];
+    var pos = new E.Position(), sans = [];
+    G.ucis.forEach(function (u) { var m = pos.parseUci(u); if (m) { sans.push(pos.san(m)); pos.make(m); } });
+    G.ucis = G.ucis.slice(0, sans.length);
+    var viewPly = null, thinking = false, token = 0, hint = null, lastMv = null, opening = detectOpening(G.ucis, sans);
+    if (G.ucis.length) lastMv = uciSquares(G.ucis[G.ucis.length - 1]);
+    ui.board.orient = G.user;
+
+    function resultText() {
+      var o = G.over; if (!o) return '';
+      var head;
+      if (o.reason === 'resign') head = 'Победил бот';
+      else if (o.result === '1/2-1/2') head = 'Ничья';
+      else head = ((o.result === '1-0' ? 0 : 1) === G.user) ? 'Вы победили!' : 'Победил бот';
+      return { head: head, why: REASON[o.reason] || '' };
+    }
+    function canUndo() {
+      if (thinking) return false;
+      for (var k = G.startLen; k < G.ucis.length; k++) if (k % 2 === G.user) return true;
+      return false;
+    }
+    function render(anim) {
+      var b = ui.board, live = viewPly === null;
+      var shown = live ? pos : posFrom(G.ucis, viewPly);
+      b.pos = shown; b.sel = -1; b.marks = {};
+      b.last = live ? lastMv : (viewPly ? uciSquares(G.ucis[viewPly - 1]) : null);
+      b.arrows = live && hint ? [{ from: hint[0], to: hint[1], color: 'rgba(46,150,90,.85)' }] : [];
+      b.setMovable(live && !G.over && !thinking && pos.side === G.user ? pos.legalMoves() : null);
+      b.draw({ anim: anim }); updateBars(ui);
+      var n = '';
+      if (opening) n += '<p class="n-sub" style="margin:0 0 6px">Дебют: ' + esc(opening) + '</p>';
+      if (!live) {
+        n += '<p class="n-title">Просмотр позиции</p><p class="n-sub">' + (viewPly ? 'После хода ' + esc(moveLabel(viewPly - 1, sans[viewPly - 1])) : 'Начальная позиция') + '. Партия ждёт вас.</p>';
+      } else if (G.over) {
+        var r = resultText();
+        n += '<p class="n-title">' + r.head + '</p><p class="n-sub">' + r.why + '</p>';
+      } else if (thinking) {
+        n += '<p class="n-prompt thinking">Бот думает</p>';
+      } else {
+        if (sans.length) n += '<p class="n-move">' + esc(moveLabel(sans.length - 1, sans[sans.length - 1])) + '</p>';
+        if (hint && hint.text) n += '<p class="n-text">Подсказка: ' + esc(hint.text) + '</p>';
+        n += '<p class="n-prompt you">' + (pos.inCheck() ? 'Шах! Ваш ход' : 'Ваш ход') + '</p>';
+      }
+      ui.note.innerHTML = n;
+      var cur = live ? sans.length : viewPly, c = navBtns(cur, sans.length);
+      if (!live) c += btn('live', ICON.play, 'Вернуться к партии', 'primary grow');
+      else if (G.over) c += btn('again', ICON.restart, 'Сыграть ещё', 'primary') + btn('setup', ICON.sliders, 'Новые настройки') + (canUndo() ? btn('undo', ICON.undo, 'Ход назад', 'quiet grow') : '');
+      else c += btn('hint', ICON.bulb, 'Подсказка', '', thinking || pos.side !== G.user) + btn('undo', ICON.undo, 'Ход назад', '', !canUndo()) + btn('resign', ICON.flag, 'Сдаться', 'quiet');
+      ui.ctrls.innerHTML = c;
+      renderSheet(ui, sans, cur, true, function (p) { viewPly = p >= sans.length ? null : p; render(); });
+    }
+    function recordResult() {
+      if (G.recorded || !G.over) return;
+      var o = G.over, k;
+      if (o.reason === 'resign') k = 'loss';
+      else if (o.result === '1/2-1/2') k = 'draw';
+      else k = ((o.result === '1-0' ? 0 : 1) === G.user) ? 'win' : 'loss';
+      stats[k]++; store.set('gt-stats', stats); G.recorded = true;
+    }
+    function play(m, info) {
+      var san = pos.san(m), u = pos.uci(m), cap = isCapture(pos, m), anim = (info && info.dragged) ? null : moveAnim(m);
+      pos.make(m); G.ucis.push(u); sans.push(san);
+      lastMv = [E.mFrom(m), E.mTo(m)]; hint = null; viewPly = null;
+      var d = detectOpening(G.ucis, sans); if (d) opening = d;
+      var st = pos.status();
+      if (st.over) { G.over = st; recordResult(); }
+      saveGame(G);
+      moveSound(pos, cap);
+      if (G.over) S.later(function () { sfx('done'); }, 250);
+      if (!G.over && pos.side !== G.user) botTurn(anim);
+      else render(anim);
+    }
+    function botTurn(anim) {
+      thinking = true; var my = ++token, t0 = Date.now();
+      render(anim);
+      function apply(u) {
+        if (!S.alive || my !== token) return;
+        S.later(function () {
+          if (my !== token) return;
+          thinking = false;
+          var m = u && pos.parseUci(u);
+          if (!m) { var lm = pos.legalMoves(); m = lm.length ? rand(lm) : 0; }
+          if (m) play(m); else render();
+        }, Math.max(0, 450 - (Date.now() - t0)));
+      }
+      var bk = pickBook(G.ucis, G.level);
+      if (bk) { apply(bk); return; }
+      Bot.think(G.ucis, L.opts).then(function (r) { apply(r.uci); });
+    }
+    ui.board.onMove = function (m, info) {
+      if (thinking || G.over || viewPly !== null || pos.side !== G.user) return;
+      play(m, info);
+    };
+    function undo() {
+      if (!canUndo()) return;
+      token++; thinking = false;
+      while (G.ucis.length > G.startLen) {
+        var k = G.ucis.length - 1;
+        pos.unmake(); G.ucis.pop(); sans.pop();
+        if (k % 2 === G.user) break;
+      }
+      G.over = null; hint = null; viewPly = null;
+      lastMv = G.ucis.length ? uciSquares(G.ucis[G.ucis.length - 1]) : null;
+      opening = detectOpening(G.ucis, sans) || opening;
+      saveGame(G); render();
+    }
+    ui.ctrls.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+      var a = b.getAttribute('data-a'), len = sans.length, cur = viewPly === null ? len : viewPly;
+      if (a === 'first') { viewPly = 0; render(); }
+      else if (a === 'prev') { viewPly = Math.max(0, cur - 1); render(); }
+      else if (a === 'next') { var nx = cur + 1; viewPly = nx >= len ? null : nx; render(); }
+      else if (a === 'last' || a === 'live') { viewPly = null; render(); }
+      else if (a === 'undo') undo();
+      else if (a === 'hint') {
+        if (thinking || pos.side !== G.user) return;
+        var my = token;
+        ui.note.innerHTML = '<p class="n-prompt thinking">Ищу лучший ход</p>';
+        Bot.think(G.ucis, { time: 900 }).then(function (r) {
+          if (!S.alive || my !== token || !r.uci) { render(); return; }
+          var m = pos.parseUci(r.uci); if (!m) { render(); return; }
+          hint = uciSquares(r.uci); hint.text = ru(pos.san(m));
+          render();
+        });
+      }
+      else if (a === 'resign') {
+        confirmBox('Сдать партию?', 'Партия будет засчитана как поражение.', 'Сдаться', function () {
+          G.over = { over: true, result: G.user === 0 ? '0-1' : '1-0', reason: 'resign' }; recordResult(); saveGame(G); render();
+        });
+      }
+      else if (a === 'again') {
+        var line0 = G.startLen ? G.ucis.slice(0, G.startLen) : [];
+        startGame({ ucis: line0, user: G.user, level: G.level, label: G.label });
+      }
+      else if (a === 'setup') go('play');
+    });
+    S.onKeys(function (e) {
+      if (e.key === 'ArrowLeft') { var c = viewPly === null ? sans.length : viewPly; viewPly = Math.max(0, c - 1); render(); }
+      else if (e.key === 'ArrowRight' && viewPly !== null) { viewPly = viewPly + 1 >= sans.length ? null : viewPly + 1; render(); }
+    });
+    var baseDestroy = S.destroy;
+    S.destroy = function () { token++; baseDestroy(); };
+    if (!G.over && pos.side !== G.user) botTurn(); else render();
+    return S;
+  }
+
+  /* ================= training hub ================= */
+  function viewTrain() {
+    setTabs('train');
+    var total = ALL_LINES.length, mast = masteredCount(), rev = reviewPool();
+    var wN = ALL_LINES.filter(function (l) { return l.op.side === 'w'; }).length, bN = total - wN;
+    var recent = ALL_LINES.filter(function (l) { return lp(l.key).t; }).sort(function (a, b) { return lp(b.key).t - lp(a.key).t; }).slice(0, 6);
+    var html = appHead() + '<h1 class="page-title">Тренировка</h1><p class="lead">Короткие сессии каждый день запоминаются лучше, чем одна длинная.</p>' +
+      '<div class="prog-card"><div class="prog-num">' + mast + '<small>из ' + total + ' ' + plural(total, ['варианта', 'вариантов', 'вариантов']) + ' освоено</small></div>' +
+      '<div class="bar"><i style="width:' + (total ? Math.round(mast / total * 100) : 0) + '%"></i></div>' +
+      '<p class="prog-note">Вариант считается освоенным после трёх прохождений без ошибок и подсказок.</p></div>' +
+      '<div class="quick">' +
+      qItem('#drill-mix-w', pieceSvg('wn', ''), 'Случайный вариант за белых', wN + ' ' + plural(wN, ['вариант', 'варианта', 'вариантов']) + ', сначала неосвоенные') +
+      qItem('#drill-mix-b', pieceSvg('bn', ''), 'Случайный вариант за чёрных', bN + ' ' + plural(bN, ['вариант', 'варианта', 'вариантов']) + ', сначала неосвоенные') +
+      qItem('#drill-mix-all', '<span style="color:var(--accent)">' + ICON.shuffle + '</span>', 'Все дебюты вперемешку', 'Белыми и чёрными по очереди') +
+      qItem('#drill-review', '<span style="color:var(--bad)">' + ICON.repeat + '</span>', 'Работа над ошибками', rev.length ? rev.length + ' ' + plural(rev.length, ['вариант требует', 'варианта требуют', 'вариантов требуют']) + ' повторения' : 'Пока нечего повторять — сначала потренируйтесь', !rev.length) +
+      '</div>';
+    html += '<h2 class="sec">Недавние</h2>';
+    if (recent.length) {
+      html += '<ul class="recent">' + recent.map(function (l) {
+        var p = lp(l.key);
+        return '<li><a href="#drill-' + l.op.id + '-' + l.idx + '"><span class="r1">' + esc(l.op.name) + '</span><span class="r2">' + esc(l.name) + (p.e ? ', ошибок в последний раз: ' + p.e : ', в последний раз без ошибок') + '</span>' + starsHtml(starsOf(l.key)) + '</a></li>';
+      }).join('') + '</ul>';
+    } else html += '<p class="empty" style="text-align:left;padding:0">Здесь появятся варианты, которые вы тренировали. Начните с любой карточки выше или выберите дебют в разделе «Дебюты».</p>';
+    view.innerHTML = html;
+  }
+  function qItem(href, ico, title, sub, disabled) {
+    return '<a class="q-item" href="' + href + '"' + (disabled ? ' aria-disabled="true" tabindex="-1"' : '') + '><span class="q-ico">' + ico + '</span><span><span class="q-title">' + title + '</span><span class="q-sub">' + sub + '</span></span>' + ICON.next + '</a>';
+  }
+
+  /* ================= play setup ================= */
+  function viewPlay() {
+    setTabs('play');
+    var G = loadGame(), html = appHead() + '<h1 class="page-title">Игра с ботом</h1><p class="lead">Отрабатывайте выученные дебюты в живой партии или просто играйте.</p>';
+    if (G && !G.over && G.ucis.length > G.startLen) {
+      var lv = LEVELS[G.level] || LEVELS[2];
+      html += '<div class="resume"><p>Незаконченная партия: ' + Math.ceil(G.ucis.length / 2) + '-й ход, вы играете ' + (G.user === 0 ? 'белыми' : 'чёрными') + ', бот «' + lv.name + '».</p><a class="btn primary" href="#game">' + ICON.play + 'Продолжить партию</a></div>';
+    }
+    html += '<div class="field"><span class="flabel" id="lc">Ваш цвет</span><div class="seg" role="group" aria-labelledby="lc" id="color">' +
+      [['w', 'Белые'], ['r', 'Случайно'], ['b', 'Чёрные']].map(function (c) { return '<button type="button" data-v="' + c[0] + '" aria-pressed="' + (settings.color === c[0]) + '">' + c[1] + '</button>'; }).join('') + '</div></div>';
+    html += '<div class="field"><span class="flabel" id="ll">Сила бота</span><div class="levels" role="group" aria-labelledby="ll" id="lvls">' + LEVELS.map(function (l, i) {
+      var meter = ''; for (var k = 0; k < 6; k++) meter += '<i class="' + (k <= i ? 'on' : '') + '"></i>';
+      return '<button type="button" class="lvl" data-v="' + i + '" aria-pressed="' + (settings.level === i) + '"><span class="lvl-name">' + l.name + '</span><span class="lvl-desc">' + l.desc + '</span><span class="meter">' + meter + '</span></button>';
+    }).join('') + '</div></div>';
+    var opts = '<option value="">Обычная начальная позиция</option>';
+    GROUPS.forEach(function (g) {
+      var ls = ALL_LINES.filter(function (l) { return groupOf(l.op) === g[0]; });
+      opts += '<optgroup label="' + g[1] + '">' + ls.map(function (l) { return '<option value="' + l.key + '"' + (settings.start === l.key ? ' selected' : '') + '>' + esc(l.op.name + ': ' + l.name) + '</option>'; }).join('') + '</optgroup>';
+    });
+    html += '<div class="field"><label class="flabel" for="start">Начальная позиция</label><select class="sel" id="start">' + opts + '</select><p class="hint">Партия начнётся после последнего хода выбранного варианта — так удобно отрабатывать дебют.</p></div>' +
+      '<div class="field"><button class="btn primary big full" type="button" id="go">' + ICON.play + 'Начать партию</button></div>' +
+      '<h2 class="sec">Ваши результаты</h2><div class="stats-line"><span><b>' + stats.win + '</b>' + plural(stats.win, ['победа', 'победы', 'побед']) + '</span><span><b>' + stats.draw + '</b>' + plural(stats.draw, ['ничья', 'ничьи', 'ничьих']) + '</span><span><b>' + stats.loss + '</b>' + plural(stats.loss, ['поражение', 'поражения', 'поражений']) + '</span></div>';
+    view.innerHTML = html;
+    view.querySelector('#color').onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      settings.color = b.getAttribute('data-v'); saveSettings();
+      Array.prototype.forEach.call(this.children, function (c) { c.setAttribute('aria-pressed', c === b); });
+    };
+    view.querySelector('#lvls').onclick = function (e) {
+      var b = e.target.closest('.lvl'); if (!b) return;
+      settings.level = +b.getAttribute('data-v'); saveSettings();
+      Array.prototype.forEach.call(this.children, function (c) { c.setAttribute('aria-pressed', c === b); });
+    };
+    view.querySelector('#start').onchange = function () { settings.start = this.value; saveSettings(); };
+    view.querySelector('#go').onclick = function () {
+      var user = settings.color === 'r' ? (Math.random() < 0.5 ? 0 : 1) : settings.color === 'w' ? 0 : 1;
+      var ln = settings.start && LINE_BY_KEY[settings.start];
+      startGame({ ucis: ln ? ln.ucis.slice() : [], user: user, level: settings.level, label: ln ? ln.op.name : '' });
+    };
+  }
+
+  /* ================= modals ================= */
+  var modalEl = null;
+  function closeModal() { if (modalEl) { modalEl.remove(); modalEl = null; } }
+  function openModal(inner, cls) {
+    closeModal();
+    modalEl = document.createElement('div');
+    modalEl.className = 'modal';
+    modalEl.innerHTML = '<div class="modal-card ' + (cls || '') + '" role="dialog" aria-modal="true">' + inner + '</div>';
+    modalEl.addEventListener('click', function (e) { if (e.target === modalEl) closeModal(); });
+    document.body.appendChild(modalEl);
+    var f = modalEl.querySelector('button'); if (f) f.focus({ preventScroll: true });
+    return modalEl;
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+  function confirmBox(title, text, okLabel, onOk) {
+    var m = openModal('<h2>' + esc(title) + '</h2><p>' + esc(text) + '</p><div class="modal-actions"><button class="btn primary" type="button" data-c="ok">' + esc(okLabel) + '</button><button class="btn quiet" type="button" data-c="no">Отмена</button></div>', 'confirm-card');
+    m.querySelector('[data-c="ok"]').onclick = function () { closeModal(); onOk(); };
+    m.querySelector('[data-c="no"]').onclick = closeModal;
+  }
+  var BOARDS = [['wood', 'Дерево', '#ecd6b0', '#b3855a'], ['slate', 'Сланец', '#dfe5ea', '#7f97ae'], ['moss', 'Мох', '#e6ebd9', '#79986d']];
+  function openSettings() {
+    function sw(b) { return '<span class="sw"><i style="background:' + b[2] + '"></i><i style="background:' + b[3] + '"></i><i style="background:' + b[3] + '"></i><i style="background:' + b[2] + '"></i></span>'; }
+    var html = '<h2>Настройки</h2>' +
+      '<div class="field"><span class="flabel">Доска</span><div class="swatches" id="sb">' + BOARDS.map(function (b) { return '<button type="button" class="swatch" data-v="' + b[0] + '" aria-pressed="' + (settings.board === b[0]) + '">' + sw(b) + b[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div class="field"><span class="flabel">Оформление</span><div class="seg" id="st">' + [['auto', 'Как в системе'], ['light', 'Светлое'], ['dark', 'Тёмное']].map(function (t) { return '<button type="button" data-v="' + t[0] + '" aria-pressed="' + (settings.theme === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div class="field">' +
+      '<label class="switch">Звук ходов<input type="checkbox" data-k="sound"' + (settings.sound ? ' checked' : '') + '></label>' +
+      '<label class="switch">Координаты на доске<input type="checkbox" data-k="coords"' + (settings.coords ? ' checked' : '') + '></label>' +
+      '<label class="switch">Показывать возможные ходы<input type="checkbox" data-k="legal"' + (settings.legal ? ' checked' : '') + '></label></div>' +
+      '<div class="install"><b>Как установить на телефон</b><p>Откройте страницу в Chrome на Android, нажмите меню ⋮ и выберите «Добавить на главный экран». Приложение появится рядом с остальными. Прогресс хранится на этом устройстве.</p></div>' +
+      '<div class="modal-actions"><button class="btn primary" type="button" data-c="close">Готово</button><button class="btn quiet danger" type="button" data-c="reset">Сбросить прогресс</button></div>';
+    var m = openModal(html);
+    m.querySelector('#sb').onclick = function (e) {
+      var b = e.target.closest('.swatch'); if (!b) return;
+      settings.board = b.getAttribute('data-v'); saveSettings();
+      Array.prototype.forEach.call(this.children, function (c) { c.setAttribute('aria-pressed', c === b); });
+    };
+    m.querySelector('#st').onclick = function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      settings.theme = b.getAttribute('data-v'); saveSettings();
+      Array.prototype.forEach.call(this.children, function (c) { c.setAttribute('aria-pressed', c === b); });
+    };
+    Array.prototype.forEach.call(m.querySelectorAll('input[data-k]'), function (inp) {
+      inp.onchange = function () { settings[inp.getAttribute('data-k')] = inp.checked; saveSettings(); refreshBoards(); };
+    });
+    m.querySelector('[data-c="close"]').onclick = closeModal;
+    m.querySelector('[data-c="reset"]').onclick = function () {
+      confirmBox('Сбросить прогресс?', 'Звёзды, история тренировок и счёт партий будут удалены с этого устройства.', 'Сбросить', function () {
+        progress = {}; stats = { win: 0, loss: 0, draw: 0 };
+        store.del('gt-progress'); store.del('gt-stats');
+        route();
+      });
+    };
+  }
+  var activeBoard = null;
+  function refreshBoards() { if (activeBoard && document.body.contains(activeBoard.el)) activeBoard.draw(); }
+
+  /* ================= start ================= */
+  tabbar.innerHTML = [['openings', 'Дебюты', ICON.book], ['train', 'Тренировка', ICON.target], ['play', 'Игра', ICON.pawn]]
+    .map(function (t) { return '<a href="#' + t[0] + '" data-tab="' + t[0] + '"><span class="pill">' + t[2] + '</span>' + t[1] + '</a>'; }).join('');
+  route();
+})();
+
+</script>
+<script>
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
